@@ -13,5 +13,5 @@ export default {
             format: "es"
         }
     ],
-    plugins: [babel()]
+    plugins: [babel({ runtimeHelpers: true })]
 }
