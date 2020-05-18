@@ -71,6 +71,10 @@ Optional. `true` by default.
 />
 ```
 
+#### `syntax` 
+
+Optional. `syntax` props allow use of react-Interpolate with different string formatting syntax. Please see the ["Custom syntax support"](#custom-syntax-support) section for more detail.
+
 
 ## Interpolation syntax
 
@@ -134,3 +138,48 @@ When tags are used the string but there are no correponding mapped value, it wou
 // would render: <h1>Hellow</h1><br/>World
 <Interpolate string="<h1>Hello</h1><br/>world"/>
 ```
+
+
+
+## Custom syntax support
+
+You may already be using a formatting syntax in your string that is different than the built-in syntax support from Interpolate. You can configure Interpolate so that it could recognize the formatting syntax that you use.
+
+For instance, you may be using [i18next](https://www.i18next.com/) which has a slightly different placeholder syntax.
+```
+hello {{name}}
+```
+
+You can define the formatting syntax of your string via  `syntax` props. 
+
+```jsx
+import Interpolate, { TOKEN_PLACEHOLDER } from "react-interpolate"
+
+const i18nNextSyntax = [
+    {
+        type: TOKEN_PLACEHOLDER,
+	regex: /{{\s*(\w+)\s*}}/g
+    }
+   ...
+]
+
+<Interpolate
+  syntax={i18nNextSyntax}
+  string="Here is <a>your order info</a>"
+  mapping={
+    a={children => <a href="https://orderinfo.com">{children}</a>)
+  }
+/>
+```
+
+react-interpolate actually comes with i18next syntax support, and you can enable it via
+
+```jsx
+import { SYNTAX_I18NEXT } from "react-interpolate"
+
+<Interpolate
+  syntax={SYNTAX_I18NEXT}
+  ...
+/>
+```
+

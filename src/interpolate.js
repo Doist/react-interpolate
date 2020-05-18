@@ -63,9 +63,14 @@ const createElement = (node, mapping, keyPrefix) => {
     }
 }
 
-export default function Interpolate({ string, mapping = {}, graceful = true }) {
+export default function Interpolate({
+    string,
+    syntax,
+    mapping = {},
+    graceful = true
+}) {
     try {
-        const tree = parser(string)
+        const tree = parser(string, syntax)
         return createElement(tree, mapping, string)
     } catch (e) {
         if (graceful) {

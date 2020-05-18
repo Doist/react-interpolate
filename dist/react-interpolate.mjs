@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import _classCallCheck from '@babel/runtime/helpers/classCallCheck';
 import _createClass from '@babel/runtime/helpers/createClass';
 import _objectWithoutProperties from '@babel/runtime/helpers/objectWithoutProperties';
-import _defineProperty from '@babel/runtime/helpers/defineProperty';
 
 var TOKEN_PLACEHOLDER = "TOKEN_PLACEHOLDER";
 var TOKEN_OPEN_TAG = "TOKEN_OPEN_TAG";
@@ -91,29 +90,69 @@ Node.createPlaceholderNode = function (token) {
   });
 };
 
+var SYNTAX_BUILT_IN = [{
+  type: TOKEN_PLACEHOLDER,
+  regex: /{\s*(\w+)\s*}/g
+}, {
+  type: TOKEN_OPEN_TAG,
+  regex: /<(\w+)>/g
+}, {
+  type: TOKEN_CLOSE_TAG,
+  regex: /<\/(\w+)>/g
+}, {
+  type: TOKEN_SELF_TAG,
+  regex: /<(\w+)\s*\/>/g
+}];
+var SYNTAX_I18NEXT = [{
+  type: TOKEN_PLACEHOLDER,
+  regex: /{{\s*(\w+)\s*}}/g
+}, {
+  type: TOKEN_OPEN_TAG,
+  regex: /<(\w+)>/g
+}, {
+  type: TOKEN_CLOSE_TAG,
+  regex: /<\/(\w+)>/g
+}, {
+  type: TOKEN_SELF_TAG,
+  regex: /<(\w+)\s*\/>/g
+}];
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(n); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 /*
  * return a array of token object
  */
 
-function lexer(string) {
-  var _regxMap;
-
-  var regxMap = (_regxMap = {}, _defineProperty(_regxMap, TOKEN_PLACEHOLDER, /{\s*(\w+)\s*}/g), _defineProperty(_regxMap, TOKEN_OPEN_TAG, /<(\w+)>/g), _defineProperty(_regxMap, TOKEN_CLOSE_TAG, /<\/(\w+)>/g), _defineProperty(_regxMap, TOKEN_SELF_TAG, /<(\w+)\s*\/>/g), _regxMap);
+function lexer(string, syntax) {
   var matches = [];
 
-  for (var tokenType in regxMap) {
-    var regx = regxMap[tokenType];
-    var res;
+  var _iterator = _createForOfIteratorHelper(syntax),
+      _step;
 
-    while ((res = regx.exec(string)) !== null) {
-      matches.push({
-        type: tokenType,
-        string: res[0],
-        name: res[1],
-        start: res.index,
-        end: res.index + res[0].length
-      });
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var rule = _step.value;
+      var type = rule.type,
+          regex = rule.regex;
+      var res;
+
+      while ((res = regex.exec(string)) !== null) {
+        matches.push({
+          type: type,
+          string: res[0],
+          name: res[1],
+          start: res.index,
+          end: res.index + res[0].length
+        });
+      }
     }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
   }
 
   matches.sort(function (a, b) {
@@ -155,8 +194,12 @@ function lexer(string) {
   return tokens;
 }
 
-function parser(string) {
-  var tokens = lexer(string);
+function parser(string, syntax) {
+  if (!syntax) {
+    syntax = SYNTAX_BUILT_IN;
+  }
+
+  var tokens = lexer(string, syntax);
   var p = new Parser(tokens);
   return p.parse();
 }
@@ -401,13 +444,14 @@ var createElement = function createElement(node, mapping, keyPrefix) {
 
 function Interpolate(_ref) {
   var string = _ref.string,
+      syntax = _ref.syntax,
       _ref$mapping = _ref.mapping,
       mapping = _ref$mapping === void 0 ? {} : _ref$mapping,
       _ref$graceful = _ref.graceful,
       graceful = _ref$graceful === void 0 ? true : _ref$graceful;
 
   try {
-    var tree = parser(string);
+    var tree = parser(string, syntax);
     return createElement(tree, mapping, string);
   } catch (e) {
     if (graceful) {
@@ -425,3 +469,4 @@ Interpolate.propTypes = {
 };
 
 export default Interpolate;
+export { SYNTAX_BUILT_IN, SYNTAX_I18NEXT, TOKEN_CLOSE_TAG, TOKEN_OPEN_TAG, TOKEN_PLACEHOLDER, TOKEN_SELF_TAG };

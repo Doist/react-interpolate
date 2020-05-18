@@ -7,9 +7,14 @@ import {
 } from "./constants"
 import Node from "./node.js"
 import lexer from "./lexer"
+import { SYNTAX_BUILT_IN } from "./syntax"
 
-export default function parser(string) {
-    const tokens = lexer(string)
+export default function parser(string, syntax) {
+    if (!syntax) {
+        syntax = SYNTAX_BUILT_IN
+    }
+
+    const tokens = lexer(string, syntax)
     const p = new Parser(tokens)
     return p.parse()
 }

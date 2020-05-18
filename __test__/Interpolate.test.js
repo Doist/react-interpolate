@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import React from "react"
 import { render } from "@testing-library/react"
-import Interpolate from "../src/interpolate"
+import Interpolate, { SYNTAX_I18NEXT } from "../src"
 
 Interpolate.defaultProps = {
     graceful: false
@@ -19,10 +19,8 @@ const surpressConsole = () => {
 
 describe("Interpolate", () => {
     function renderTest({ expected, ...props }) {
-        return () => {
-            const { container } = render(<Interpolate {...props} />)
-            expect(container.innerHTML).toEqual(expected)
-        }
+        const { container } = render(<Interpolate {...props} />)
+        expect(container.innerHTML).toEqual(expected)
     }
 
     test("when no mapping is provide", () => {
@@ -36,8 +34,7 @@ describe("Interpolate", () => {
         restore()
     })
 
-    test(
-        "tag mapping",
+    test("tag mapping", () =>
         renderTest({
             string: "<h1>hello <b>steven</b></h1>. welcome to todoist",
             mapping: {
@@ -45,11 +42,9 @@ describe("Interpolate", () => {
                 h1: child => <h2>{child}</h2>
             },
             expected: "<h2>hello <i>steven</i></h2>. welcome to todoist"
-        })
-    )
+        }))
 
-    test(
-        "placholder mapping",
+    test("placholder mapping", () =>
         renderTest({
             string: "{greeting} <b>{name}</b>. welcome to todoist",
             mapping: {
@@ -57,22 +52,18 @@ describe("Interpolate", () => {
                 name: () => <i>steven</i>
             },
             expected: "hi <b><i>steven</i></b>. welcome to todoist"
-        })
-    )
+        }))
 
-    test(
-        "void tag mapping",
+    test("void tag mapping", () =>
         renderTest({
             string: "hello <br/>",
             mapping: {
                 br: <hr />
             },
             expected: "hello <hr>"
-        })
-    )
+        }))
 
-    test(
-        "combination of mapping",
+    test("combination of mapping", () =>
         renderTest({
             string: "<h1>hello <b>{name}</b></h1>.<br/> welcome to todoist",
             mapping: {
@@ -82,8 +73,7 @@ describe("Interpolate", () => {
                 br: <hr />
             },
             expected: "<h2>hello <i>steven</i></h2>.<hr> welcome to todoist"
-        })
-    )
+        }))
 
     test("combination of mapping with function component", () => {
         // eslint-disable-next-line
@@ -104,8 +94,7 @@ describe("Interpolate", () => {
         })
     })
 
-    test(
-        "spacing in the void tag and placeholder should be allowed",
+    test("spacing in the void tag and placeholder should be allowed", () =>
         renderTest({
             string: "hello { name }<br /> welcome to todoist",
             mapping: {
@@ -113,8 +102,7 @@ describe("Interpolate", () => {
                 br: <hr />
             },
             expected: "hello steven<hr> welcome to todoist"
-        })
-    )
+        }))
 
     test("the mapping value should be interpolate corrected with proper html escape", () => {
         renderTest({
@@ -125,7 +113,7 @@ describe("Interpolate", () => {
             },
             expected:
                 "hello &lt;script&gt;window.xss = 1&lt;/script&gt;&lt;script&gt;window.xss = 1&lt;/script&gt; welcome to todoist"
-        })()
+        })
 
         expect(window.css).toBeUndefined()
     })
@@ -137,9 +125,24 @@ describe("Interpolate", () => {
             string: "</h1>",
             expected: "&lt;/h1&gt;",
             graceful: true
-        })()
+        })
 
         restore()
+    })
+
+    test("using SYNTAX_I18NEXT", () => {
+        renderTest({
+            syntax: SYNTAX_I18NEXT,
+            string: "<0>hello <b>{{name}}</b></0>.<br/> welcome to todoist",
+            mapping: {
+                0: child => <h2 className="subheader">{child}</h2>,
+                b: child => <i>{child}</i>,
+                name: "steven",
+                br: <hr />
+            },
+            expected:
+                '<h2 class="subheader">hello <i>steven</i></h2>.<hr> welcome to todoist'
+        })
     })
 })
 

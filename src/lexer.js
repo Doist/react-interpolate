@@ -1,31 +1,19 @@
-import {
-    TOKEN_PLACEHOLDER,
-    TOKEN_OPEN_TAG,
-    TOKEN_CLOSE_TAG,
-    TOKEN_SELF_TAG,
-    TOKEN_TEXT
-} from "./constants"
+import { TOKEN_TEXT } from "./constants"
+export { SYNTAX_I18NEXT, SYNTAX_BUILT_IN } from "./syntax"
 
 /*
  * return a array of token object
  */
-export default function lexer(string) {
-    const regxMap = {
-        [TOKEN_PLACEHOLDER]: /{\s*(\w+)\s*}/g,
-        [TOKEN_OPEN_TAG]: /<(\w+)>/g,
-        [TOKEN_CLOSE_TAG]: /<\/(\w+)>/g,
-        [TOKEN_SELF_TAG]: /<(\w+)\s*\/>/g
-    }
-
+export default function lexer(string, syntax) {
     const matches = []
 
-    for (const tokenType in regxMap) {
-        const regx = regxMap[tokenType]
+    for (const rule of syntax) {
+        const { type, regex } = rule
 
         var res
-        while ((res = regx.exec(string)) !== null) {
+        while ((res = regex.exec(string)) !== null) {
             matches.push({
-                type: tokenType,
+                type,
                 string: res[0],
                 name: res[1],
                 start: res.index,
