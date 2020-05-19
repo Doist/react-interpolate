@@ -10,13 +10,15 @@ A string interpolation component that formats and interpolates a template string
 import Interpolate from "@doist/react-interpolate"
 
 function Greeting() {
-  return <Interpolate
-    string="<h1>Hello {name}. Here is <a>your order info</a></h1>"
-    mapping={
-      a={child => <a href="https://orderinfo.com">{child}</a>)
-      name="William"
-    }
-  />
+    return (
+        <Interpolate
+            string="<h1>Hello {name}. Here is <a>your order info</a></h1>"
+            mapping={{
+                name: "William",
+                a: <a href="https://orderinfo.com" />
+            }}
+        />
+    )
 }
 ```
 
@@ -44,18 +46,21 @@ An object that defines the values to be injected for placeholder and tags define
 
 ```jsx
 <Interpolate
-  string="Hello {name}. Here is <orderLink>your order info</orderLink><hr/>. Please contact <supportLink>support</supportLink> for help"
-  mapping={
-    // you can map placholder and self-closing tag to any valid element value
-    name="William" 
-    hr={<hr className="break"/>}
+    string="Hello {name}. Here is <orderLink>your order info</orderLink><hr/>.  \
+            Please contact <supportLink>support</supportLink> for help"
+    mapping={{
+        // you can map placholder and self-closing tag to any valid element value
+        name: "William",
+        hr: <hr className="break" />,
 
-    // you can map open & close tag to a rendering function
-    a={children => <a href="https://orderinfo.com">{children}</a>),
-    
-    // or you can map open & close tag to a element
-    supportLink=<a href="https://orderinfo.com" />
-  }
+        // you can map open & close tag to a rendering function
+        orderLink: text => (
+            <a href="https://orderinfo.com">{text}</a>
+        ),
+
+        // or you can map open & close tag to an element
+        supportLink: <a href="https://orderinfo.com" />
+    }}
 />
 ```
 
@@ -103,16 +108,50 @@ Placeholder name should be alphanumeric (`[A-Za-z0-9_]`). Placeholders could be 
 "Here is <a><b>you order info {name}</b></a>"
 ```
 
-Tag name should be alphanumeric (`[A-Za-z0-9_]`). Open & close tag could only be mapped to a renderer function.
+Tag name should be alphanumeric (`[A-Za-z0-9_]`). 
+
+Open & close tag could be mapped to an element value. 
 
 ```jsx
 <Interpolate
-  string="Here is <a>your order info</a>"
-  mapping={
-    a={children => <a href="https://orderinfo.com">{children}</a>)
-  }
+    string="Here is <a>your order info</a>"
+    mapping={{
+        a: <a href="https://orderinfo.com" />
+    }}
+/>
+
+
+// Invalid; the mapping value element should not contain children
+<Interpolate
+    string="Here is <a>your order info</a>"
+    mapping={{
+        a: (
+            <a href="https://orderinfo.com">
+                <b />
+                <br />
+            </a>
+        )
+    }}
 />
 ```
+
+Open & close tag could be mapped to a rendering function, which would take a single argument that contains the enclosing text. 
+
+```jsx
+<Interpolate
+    string="Here is <a>your order info</a>"
+    mapping={{
+        a: text => (
+            <a href="https://orderinfo.com">
+                <b>{text}</b>
+                <br />
+            </a>
+        )
+    }}
+/>
+```
+
+
 
 Unclosed tag or incorrect nesting of tag would result in syntax error.
 
@@ -161,21 +200,21 @@ import Interpolate, { TOKEN_PLACEHOLDER } from "react-interpolate"
 const i18nNextSyntax = [
     {
         type: TOKEN_PLACEHOLDER,
-	regex: /{{\s*(\w+)\s*}}/g
+        regex: /{{\s*(\w+)\s*}}/g
     }
-   ...
 ]
 
+// will output "hi steven"
 <Interpolate
-  syntax={i18nNextSyntax}
-  string="Here is <a>your order info</a>"
-  mapping={
-    a={children => <a href="https://orderinfo.com">{children}</a>)
-  }
+    syntax={i18nNextSyntax}
+    string="hi {{name}}"
+    mapping={{
+        name: "steven"
+    }}
 />
 ```
 
-react-interpolate actually comes with i18next syntax support, and you can enable it via
+react-interpolate comes with i18next syntax support, and you can enable it via
 
 ```jsx
 import { SYNTAX_I18NEXT } from "react-interpolate"
