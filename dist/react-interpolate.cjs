@@ -209,7 +209,7 @@ function parser(string, syntax) {
   var p = new Parser(tokens);
   return p.parse();
 }
-var SYNTAX_ERROR = "syntax error"; // A special token representing end of the tream
+var SYNTAX_ERROR = "Syntax error. Please check if each open tag is closed correctly"; // A special token representing end of the tream
 
 var EPSILON = {
   type: "EPSILON"
@@ -416,15 +416,25 @@ var createElement = function createElement(node, mapping, keyPrefix) {
       {
         var _val = mapping[node.name];
 
+        if (_val === undefined) {
+          return React.createElement(node.name, null, children);
+        }
+
         if (typeof _val === "function") {
           return _val(children);
         }
 
-        if (_val !== undefined) {
-          throw new Error("tag \"".concat(node.name, "\" should be mapped to a renderer function"));
+        if (React.isValidElement(_val)) {
+          if (React.Children.count(_val.props.children) !== 0) {
+            throw new Error("when passing an element as value, the element should not contains children");
+          }
+
+          return React.cloneElement(_val, {
+            children: children
+          });
         }
 
-        return React.createElement(node.name, null, children);
+        throw new Error("Invalid mapping value for \"".concat(node.name, "\". Only element or render function are accepted"));
       }
 
     case NODE_PLACEHOLDER:

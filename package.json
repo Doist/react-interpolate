@@ -1,6 +1,6 @@
 {
   "name": "@doist/react-interpolate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A string interpolation component that formats and interpolates a template string in a safe way",
   "main": "dist/react-interpolate.cjs",
   "module": "dist/react-interpolate.mjs",
@@ -10,7 +10,8 @@
     "build": "del dist && rollup -c && npm run mini-cjs && npm run mini-mjs && npm run gzip",
     "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
     "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
-    "gzip": "gzip dist/**/*.min.*js --extension=gz"
+    "gzip": "gzip dist/**/*.min.*js --extension=gz",
+    "publish": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
