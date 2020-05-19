@@ -39,19 +39,22 @@ Please see the [Interpolation syntax](./#interpolation-syntax) section below for
 #### `mapping` 
 An object that defines the values to be injected for placeholder and tags defined in the template string. Optional. 
 
-- You can map placeholder and self-closing tag to any [valid element value](https://reactjs.org/docs/react-api.html#isvalidelement)
-- For open & close tag, you need to supply a renderer function that defines how the the enclosed children should be rendered.
+- For placeholder or self-closing tag, the mapping value could be any valid element value
+- For open & close tag, the mapping value could be either renderer function or an element.
 
 ```jsx
 <Interpolate
-  string="Hello {name}. Here is <a>your order info</a><hr/>"
+  string="Hello {name}. Here is <orderLink>your order info</orderLink><hr/>. Please contact <supportLink>support</supportLink> for help"
   mapping={
     // you can map placholder and self-closing tag to any valid element value
     name="William" 
     hr={<hr className="break"/>}
 
-    // mapping value for open & close tag must be a function
-    a={children => <a href="https://orderinfo.com">{children}</a>)
+    // you can map open & close tag to a rendering function
+    a={children => <a href="https://orderinfo.com">{children}</a>),
+    
+    // or you can map open & close tag to a element
+    supportLink=<a href="https://orderinfo.com" />
   }
 />
 ```

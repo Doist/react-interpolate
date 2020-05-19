@@ -33,17 +33,28 @@ const createElement = (node, mapping, keyPrefix) => {
         }
         case NODE_TAG_ELEMENT: {
             const val = mapping[node.name]
+
+            if (val === undefined) {
+                return React.createElement(node.name, null, children)
+            }
+
             if (typeof val === "function") {
                 return val(children)
             }
 
-            if (val !== undefined) {
-                throw new Error(
-                    `tag "${node.name}" should be mapped to a renderer function`
-                )
+            if (React.isValidElement(val)) {
+                if (React.Children.count(val.props.children) !== 0) {
+                    throw new Error(
+                        "when passing an element as value, the element should not contains children"
+                    )
+                }
+
+                return React.cloneElement(val, { children })
             }
 
-            return React.createElement(node.name, null, children)
+            throw new Error(
+                `Invalid mapping value for "${node.name}". Only element or render function are accepted`
+            )
         }
         case NODE_PLACEHOLDER: {
             const val = mapping[node.name]

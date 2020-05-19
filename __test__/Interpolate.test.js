@@ -44,6 +44,16 @@ describe("Interpolate", () => {
             expected: "<h2>hello <i>steven</i></h2>. welcome to todoist"
         }))
 
+    test("tag mapping: should accept element directly", () =>
+        renderTest({
+            string: "<h1>hello <b>steven</b></h1>. welcome to todoist",
+            mapping: {
+                b: <i />,
+                h1: <h2 />
+            },
+            expected: "<h2>hello <i>steven</i></h2>. welcome to todoist"
+        }))
+
     test("placholder mapping", () =>
         renderTest({
             string: "{greeting} <b>{name}</b>. welcome to todoist",
@@ -146,7 +156,7 @@ describe("Interpolate", () => {
     })
 })
 
-describe("Interpolate: error", () => {
+describe("Interpolate: error cases", () => {
     let restore
     beforeAll(() => {
         restore = surpressConsole()
@@ -155,19 +165,39 @@ describe("Interpolate: error", () => {
         restore()
     })
 
-    function renderTest({ props }) {
+    function renderTest({ expectedError, ...props }) {
         return () => {
-            expect(() => render(<Interpolate {...props} />)).toThrow()
+            expect(() => render(<Interpolate {...props} />)).toThrow(
+                expectedError
+            )
         }
     }
 
-    test("non-closing tag", renderTest({ string: "<b>" }))
+    test(
+        "non-closing tag",
+        renderTest({
+            string: "<b>",
+            expectedError:
+                "Syntax error. Please check if each open tag is closed correctly"
+        })
+    )
 
     test(
         "mapping value for tag should always be a function",
         renderTest({
             string: "<h1>hello</h1>. welcome to todoist",
-            mapping: { h1: "hi" }
+            mapping: { h1: "hi" },
+            expectedError: "Invalid mapping value for"
+        })
+    )
+
+    test(
+        "when passing element as value but the element contains children, error should be thrown",
+        renderTest({
+            string: "<h1>hello</h1>. welcome to todoist",
+            mapping: { h1: <h1>hi</h1> },
+            expectedError:
+                "when passing an element as value, the element should not contains children"
         })
     )
 })

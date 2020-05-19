@@ -19,7 +19,8 @@ export default function parser(string, syntax) {
     return p.parse()
 }
 
-const SYNTAX_ERROR = "syntax error"
+const SYNTAX_ERROR =
+    "Syntax error. Please check if each open tag is closed correctly"
 
 // A special token representing end of the tream
 const EPSILON = {

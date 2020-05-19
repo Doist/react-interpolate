@@ -37,7 +37,9 @@ describe("parser: error handling", () => {
         test(`invalid syntax: ${string}`, () => {
             expect(() => {
                 parser(string)
-            }).toThrow()
+            }).toThrow(
+                "Syntax error. Please check if each open tag is closed correctly"
+            )
         })
     })
 })
