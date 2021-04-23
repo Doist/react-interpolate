@@ -3,7 +3,6 @@ const config = {
         "eslint:recommended",
         "plugin:react/recommended",
         "prettier",
-        "prettier/react",
         "plugin:compat/recommended"
     ],
     env: {
