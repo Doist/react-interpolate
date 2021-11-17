@@ -11,7 +11,9 @@
     "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
     "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
     "gzip": "gzip dist/**/*.min.*js --extension=gz",
-    "publish": "npm run build && npm publish"
+    "publish": "npm run build && npm publish",
+    "release": "git checkout master && git pull && release-it",
+    "release:auto": "git checkout master && git pull && release-it --ci"
   },
   "repository": {
     "type": "git",
@@ -54,6 +56,7 @@
     "prettier": "^2.4.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "release-it": "^14.11.7",
     "rollup": "^2.60.0",
     "rollup-plugin-babel": "^4.4.0",
     "uglify-es": "^3.3.9"
