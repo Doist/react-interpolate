@@ -3,7 +3,6 @@ const config = {
         "eslint:recommended",
         "plugin:react/recommended",
         "prettier",
-        "prettier/react",
         "plugin:compat/recommended"
     ],
     env: {
@@ -18,7 +17,7 @@ const config = {
         sourceType: "module"
     },
     plugins: ["react", "prettier", "react-hooks", "jest"],
-    parser: "babel-eslint",
+    parser: "@babel/eslint-parser",
     rules: {
         semi: ["error", "never"],
         "arrow-parens": ["error", "as-needed"],
