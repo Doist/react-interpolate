@@ -2,13 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var React = require('react');
+var PropTypes = require('prop-types');
+var _classCallCheck = require('@babel/runtime/helpers/classCallCheck');
+var _createClass = require('@babel/runtime/helpers/createClass');
+var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
 
-var React = _interopDefault(require('react'));
-var PropTypes = _interopDefault(require('prop-types'));
-var _classCallCheck = _interopDefault(require('@babel/runtime/helpers/classCallCheck'));
-var _createClass = _interopDefault(require('@babel/runtime/helpers/createClass'));
-var _objectWithoutProperties = _interopDefault(require('@babel/runtime/helpers/objectWithoutProperties'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
+var _classCallCheck__default = /*#__PURE__*/_interopDefaultLegacy(_classCallCheck);
+var _createClass__default = /*#__PURE__*/_interopDefaultLegacy(_createClass);
+var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 
 var TOKEN_PLACEHOLDER = "TOKEN_PLACEHOLDER";
 var TOKEN_OPEN_TAG = "TOKEN_OPEN_TAG";
@@ -21,13 +27,15 @@ var NODE_VOID_ELEMENT = "NODE_VOID_ELEMENT";
 var NODE_PLACEHOLDER = "NODE_PLACEHOLDER";
 var NODE_TEXT = "NODE_TEXT";
 
+var _excluded = ["type", "children"];
+
 var Node = /*#__PURE__*/function () {
   function Node(_ref) {
     var type = _ref.type,
         children = _ref.children,
-        fields = _objectWithoutProperties(_ref, ["type", "children"]);
+        fields = _objectWithoutProperties__default["default"](_ref, _excluded);
 
-    _classCallCheck(this, Node);
+    _classCallCheck__default["default"](this, Node);
 
     this.type = type;
     this.children = children || [];
@@ -41,7 +49,7 @@ var Node = /*#__PURE__*/function () {
     }
   }
 
-  _createClass(Node, [{
+  _createClass__default["default"](Node, [{
     key: "appendChild",
     value: function appendChild(child) {
       this.children.push(child);
@@ -123,9 +131,9 @@ var SYNTAX_I18NEXT = [{
   regex: /<(\w+)\s*\/>/g
 }];
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(n); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 /*
@@ -243,13 +251,13 @@ var EPSILON = {
 
 var Parser = /*#__PURE__*/function () {
   function Parser(tokens) {
-    _classCallCheck(this, Parser);
+    _classCallCheck__default["default"](this, Parser);
 
     this.tokens = [].concat(tokens);
     this.tags = [];
   }
 
-  _createClass(Parser, [{
+  _createClass__default["default"](Parser, [{
     key: "parse",
     value: function parse() {
       var tree = this.document();
@@ -350,6 +358,11 @@ var Parser = /*#__PURE__*/function () {
       this.match(TOKEN_CLOSE_TAG);
     }
   }, {
+    key: "lookahead",
+    get: function get() {
+      return this.tokens.length === 0 ? EPSILON : this.tokens[0];
+    }
+  }, {
     key: "predict",
     value: function predict() {
       for (var _len = arguments.length, types = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -373,11 +386,6 @@ var Parser = /*#__PURE__*/function () {
     value: function pushTag(token) {
       this.tags.push(token);
     }
-  }, {
-    key: "lookahead",
-    get: function get() {
-      return this.tokens.length === 0 ? EPSILON : this.tokens[0];
-    }
   }]);
 
   return Parser;
@@ -385,7 +393,7 @@ var Parser = /*#__PURE__*/function () {
 
 var createElement = function createElement(node, mapping, keyPrefix) {
   var children = node.children.map(function (c, i) {
-    return /*#__PURE__*/React.createElement(React.Fragment, {
+    return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, {
       key: keyPrefix + i
     }, createElement(c, mapping, keyPrefix));
   });
@@ -398,7 +406,7 @@ var createElement = function createElement(node, mapping, keyPrefix) {
 
     case NODE_FRAGMENT:
       {
-        return React.createElement(React.Fragment, null, children);
+        return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, children);
       }
 
     case NODE_VOID_ELEMENT:
@@ -409,7 +417,7 @@ var createElement = function createElement(node, mapping, keyPrefix) {
           return val();
         }
 
-        return val || React.createElement(node.name, null);
+        return val || /*#__PURE__*/React__default["default"].createElement(node.name, null);
       }
 
     case NODE_TAG_ELEMENT:
@@ -417,19 +425,19 @@ var createElement = function createElement(node, mapping, keyPrefix) {
         var _val = mapping[node.name];
 
         if (_val === undefined) {
-          return React.createElement(node.name, null, children);
+          return /*#__PURE__*/React__default["default"].createElement(node.name, null, children);
         }
 
         if (typeof _val === "function") {
           return _val(children);
         }
 
-        if (React.isValidElement(_val)) {
-          if (React.Children.count(_val.props.children) !== 0) {
+        if ( /*#__PURE__*/React__default["default"].isValidElement(_val)) {
+          if (React__default["default"].Children.count(_val.props.children) !== 0) {
             throw new Error("when passing an element as value, the element should not contains children");
           }
 
-          return React.cloneElement(_val, {
+          return /*#__PURE__*/React__default["default"].cloneElement(_val, {
             children: children
           });
         }
@@ -479,9 +487,9 @@ function Interpolate(_ref) {
   }
 }
 Interpolate.propTypes = {
-  string: PropTypes.string.isRequired,
-  mapping: PropTypes.object,
-  graceful: PropTypes.bool
+  string: PropTypes__default["default"].string.isRequired,
+  mapping: PropTypes__default["default"].object,
+  graceful: PropTypes__default["default"].bool
 };
 
 exports.SYNTAX_BUILT_IN = SYNTAX_BUILT_IN;
@@ -490,4 +498,4 @@ exports.TOKEN_CLOSE_TAG = TOKEN_CLOSE_TAG;
 exports.TOKEN_OPEN_TAG = TOKEN_OPEN_TAG;
 exports.TOKEN_PLACEHOLDER = TOKEN_PLACEHOLDER;
 exports.TOKEN_SELF_TAG = TOKEN_SELF_TAG;
-exports.default = Interpolate;
+exports["default"] = Interpolate;
