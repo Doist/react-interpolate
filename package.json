@@ -1,67 +1,82 @@
 {
-  "name": "@doist/react-interpolate",
-  "version": "0.3.0",
-  "description": "A string interpolation component that formats and interpolates a template string in a safe way",
-  "main": "dist/react-interpolate.cjs",
-  "module": "dist/react-interpolate.mjs",
-  "scripts": {
-    "test": "jest",
-    "lint": "eslint ./src ./__test__",
-    "build": "del dist && rollup -c && npm run mini-cjs && npm run mini-mjs && npm run gzip",
-    "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
-    "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
-    "gzip": "gzip dist/**/*.min.*js --extension=gz",
-    "publish": "npm run build && npm publish",
-    "release": "git checkout master && git pull && release-it",
-    "release:auto": "git checkout master && git pull && release-it --ci"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Doist/react-interpolate.git"
-  },
-  "keywords": [
-    "react",
-    "interpolate",
-    "template",
-    "format",
-    "text",
-    "string"
-  ],
-  "author": "Steven Kao",
-  "license": "ISC",
-  "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.16.0",
-    "@babel/core": "^7.16.0",
-    "@babel/eslint-parser": "^7.16.3",
-    "@babel/plugin-transform-runtime": "^7.16.4",
-    "@babel/preset-env": "^7.16.4",
-    "@babel/preset-react": "^7.16.0",
-    "@testing-library/react": "^12.1.2",
-    "babel-jest": "^27.3.1",
-    "core-js": "^3.19.1",
-    "del-cli": "^4.0.1",
-    "eslint": "^8.2.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-compat": "^4.0.0",
-    "eslint-plugin-jest": "^25.2.4",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.27.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
-    "gzip-cli": "^1.2.0",
-    "jest": "^27.3.1",
-    "prettier": "^2.4.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "release-it": "^14.11.7",
-    "rollup": "^2.60.0",
-    "rollup-plugin-babel": "^4.4.0",
-    "uglify-es": "^3.3.9"
-  },
-  "dependencies": {
-    "@babel/runtime": "^7.16.3"
-  }
+    "name": "@doist/react-interpolate",
+    "version": "0.3.0",
+    "description": "A string interpolation component that formats and interpolates a template string in a safe way",
+    "main": "dist/react-interpolate.cjs",
+    "module": "dist/react-interpolate.mjs",
+    "scripts": {
+        "test": "jest",
+        "lint": "eslint ./src ./__test__",
+        "build": "del dist && rollup -c && npm run mini-cjs && npm run mini-mjs && npm run gzip",
+        "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
+        "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
+        "gzip": "gzip dist/**/*.min.*js --extension=gz",
+        "publish": "npm run build && npm publish",
+        "release": "git checkout master && git pull && release-it",
+        "release:auto": "git checkout master && git pull && release-it --ci"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Doist/react-interpolate.git"
+    },
+    "keywords": [
+        "react",
+        "interpolate",
+        "template",
+        "format",
+        "text",
+        "string"
+    ],
+    "author": "Steven Kao",
+    "license": "ISC",
+    "peerDependencies": {
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.16.0",
+        "@babel/core": "^7.16.0",
+        "@babel/eslint-parser": "^7.16.3",
+        "@babel/plugin-transform-runtime": "^7.16.4",
+        "@babel/preset-env": "^7.16.4",
+        "@babel/preset-react": "^7.16.0",
+        "@testing-library/react": "^12.1.2",
+        "babel-jest": "^27.3.1",
+        "core-js": "^3.19.1",
+        "del-cli": "^4.0.1",
+        "eslint": "^8.2.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-compat": "^4.0.0",
+        "eslint-plugin-jest": "^25.2.4",
+        "eslint-plugin-prettier": "^4.0.0",
+        "eslint-plugin-react": "^7.27.0",
+        "eslint-plugin-react-hooks": "^4.3.0",
+        "gzip-cli": "^1.2.0",
+        "jest": "^27.3.1",
+        "prettier": "^2.4.1",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "release-it": "^14.11.7",
+        "rollup": "^2.60.0",
+        "rollup-plugin-babel": "^4.4.0",
+        "uglify-es": "^3.3.9"
+    },
+    "dependencies": {
+        "@babel/runtime": "^7.16.3"
+    },
+    "release-it": {
+        "git": {
+            "tag": true,
+            "push": true
+        },
+        "npm": {
+            "publish": true
+        },
+        "github": {
+            "release": true
+        },
+        "hooks": {
+            "after:bump": "npm run build"
+        }
+    }
 }
