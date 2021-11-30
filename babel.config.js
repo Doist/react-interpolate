@@ -1,18 +1,18 @@
-module.exports = function(api) {
+module.exports = function (api) {
     api.cache(true)
 
     return {
         presets: [
             [
-                "@babel/preset-env",
+                '@babel/preset-env',
                 {
                     targets: {
-                        browsers: ["IE 11"]
-                    }
-                }
+                        browsers: ['IE 11'],
+                    },
+                },
             ],
-            "@babel/react"
+            '@babel/react',
         ],
-        plugins: ["@babel/plugin-transform-runtime"]
+        plugins: ['@babel/plugin-transform-runtime'],
     }
 }

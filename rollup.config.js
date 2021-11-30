@@ -1,17 +1,17 @@
-import babel from "rollup-plugin-babel"
-import pkg from "./package.json"
+import babel from 'rollup-plugin-babel'
+import pkg from './package.json'
 
 export default {
-    input: "src/index.js",
+    input: 'src/index.js',
     output: [
         {
             file: pkg.main,
-            format: "cjs"
+            format: 'cjs',
         },
         {
             file: pkg.module,
-            format: "es"
-        }
+            format: 'es',
+        },
     ],
-    plugins: [babel({ runtimeHelpers: true })]
+    plugins: [babel({ runtimeHelpers: true })],
 }

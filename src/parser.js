@@ -3,11 +3,11 @@ import {
     TOKEN_OPEN_TAG,
     TOKEN_CLOSE_TAG,
     TOKEN_SELF_TAG,
-    TOKEN_TEXT
-} from "./constants"
-import Node from "./node.js"
-import lexer from "./lexer"
-import { SYNTAX_BUILT_IN } from "./syntax"
+    TOKEN_TEXT,
+} from './constants'
+import Node from './node.js'
+import lexer from './lexer'
+import { SYNTAX_BUILT_IN } from './syntax'
 
 export default function parser(string, syntax) {
     if (!syntax) {
@@ -19,12 +19,11 @@ export default function parser(string, syntax) {
     return p.parse()
 }
 
-const SYNTAX_ERROR =
-    "Syntax error. Please check if each open tag is closed correctly"
+const SYNTAX_ERROR = 'Syntax error. Please check if each open tag is closed correctly'
 
 // A special token representing end of the tream
 const EPSILON = {
-    type: "EPSILON"
+    type: 'EPSILON',
 }
 
 /*

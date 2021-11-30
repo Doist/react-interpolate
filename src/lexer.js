@@ -1,5 +1,5 @@
-import { TOKEN_TEXT } from "./constants"
-export { SYNTAX_I18NEXT, SYNTAX_BUILT_IN } from "./syntax"
+import { TOKEN_TEXT } from './constants'
+export { SYNTAX_I18NEXT, SYNTAX_BUILT_IN } from './syntax'
 
 /*
  * return a array of token object
@@ -17,7 +17,7 @@ export default function lexer(string, syntax) {
                 string: res[0],
                 name: res[1],
                 start: res.index,
-                end: res.index + res[0].length
+                end: res.index + res[0].length,
             })
         }
     }
@@ -26,7 +26,7 @@ export default function lexer(string, syntax) {
     const textTokens = []
 
     let start = 0
-    matches.forEach(match => {
+    matches.forEach((match) => {
         if (match.start === start) {
             start = match.end
             return
@@ -40,25 +40,23 @@ export default function lexer(string, syntax) {
             string: text,
             text,
             start,
-            end
+            end,
         })
 
         start = match.end
     })
 
     const text = string.substring(start)
-    if (text !== "") {
+    if (text !== '') {
         textTokens.push({
             type: TOKEN_TEXT,
             string: text,
             start,
-            end: string.length
+            end: string.length,
         })
     }
 
-    const tokens = []
-        .concat(textTokens, matches)
-        .sort((a, b) => a.start - b.start)
+    const tokens = [].concat(textTokens, matches).sort((a, b) => a.start - b.start)
 
     return tokens
 }

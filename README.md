@@ -5,15 +5,15 @@
 A string interpolation component that formats and interpolates a template string in a safe way.
 
 ```jsx
-import Interpolate from "@doist/react-interpolate"
+import Interpolate from '@doist/react-interpolate'
 
 function Greeting() {
     return (
         <Interpolate
             string="<h1>Hello {name}. Here is <a>your order info</a></h1>"
             mapping={{
-                name: "William",
-                a: <a href="https://orderinfo.com" />
+                name: 'William',
+                a: <a href="https://orderinfo.com" />,
             }}
         />
     )
@@ -23,9 +23,7 @@ function Greeting() {
 Would render the following HTML
 
 ```html
-<h1>
-    Hello William. Here is <a href="https://orderinfo.com">your order info</a>
-</h1>
+<h1>Hello William. Here is <a href="https://orderinfo.com">your order info</a></h1>
 ```
 
 ## Component API
@@ -51,14 +49,14 @@ An object that defines the values to be injected for placeholder and tags define
             Please contact <supportLink>support</supportLink> for help"
     mapping={{
         // you can map placholder and self-closing tag to any valid element value
-        name: "William",
+        name: 'William',
         hr: <hr className="break" />,
 
         // you can map open & close tag to a rendering function
-        orderLink: text => <a href="https://orderinfo.com">{text}</a>,
+        orderLink: (text) => <a href="https://orderinfo.com">{text}</a>,
 
         // or you can map open & close tag to an element
-        supportLink: <a href="https://orderinfo.com" />
+        supportLink: <a href="https://orderinfo.com" />,
     }}
 />
 ```
@@ -85,7 +83,7 @@ Here is interpolation syntax you can use in your `string`.
 #### Placeholder
 
 ```jsx
-"hello {user_name}"
+'hello {user_name}'
 ```
 
 Placeholder name should be alphanumeric (`[A-Za-z0-9_]`). Placeholders could be mapped to any valid element value.
@@ -93,13 +91,13 @@ Placeholder name should be alphanumeric (`[A-Za-z0-9_]`). Placeholders could be 
 #### Open & close tags
 
 ```jsx
-"Here is <a>your order info</a>"
+'Here is <a>your order info</a>'
 
 // tag name could be any alphanumeric string
-"Here is <link>your order info</link>"
+'Here is <link>your order info</link>'
 
 // you can nest tag and placeholder
-"Here is <a><b>you order info {name}</b></a>"
+'Here is <a><b>you order info {name}</b></a>'
 ```
 
 Tag name should be alphanumeric (`[A-Za-z0-9_]`).
@@ -135,12 +133,12 @@ Open & close tag could be mapped to a rendering function, which would take a sin
 <Interpolate
     string="Here is <a>your order info</a>"
     mapping={{
-        a: text => (
+        a: (text) => (
             <a href="https://orderinfo.com">
                 <b>{text}</b>
                 <br />
             </a>
-        )
+        ),
     }}
 />
 ```
@@ -149,16 +147,16 @@ Unclosed tag or incorrect nesting of tag would result in syntax error.
 
 ```js
 // bad: no close tag
-"Here is <a>your order info"
+'Here is <a>your order info'
 
 // bad: incorrect tag structure
-"Here is <a><b>your order info</a></b>"
+'Here is <a><b>your order info</a></b>'
 ```
 
 #### Self closing tag
 
 ```js
-"Hello.<br/>Here is your order"
+'Hello.<br/>Here is your order'
 ```
 
 Tag name should be alphanumeric (`[A-Za-z0-9_]`). Self closing tags could be mapped to any valid element value.

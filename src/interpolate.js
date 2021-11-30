@@ -1,19 +1,17 @@
-import React from "react"
-import PropTypes from "prop-types"
-import parser from "./parser"
+import React from 'react'
+import PropTypes from 'prop-types'
+import parser from './parser'
 import {
     NODE_FRAGMENT,
     NODE_TAG_ELEMENT,
     NODE_VOID_ELEMENT,
     NODE_PLACEHOLDER,
-    NODE_TEXT
-} from "./constants"
+    NODE_TEXT,
+} from './constants'
 
 const createElement = (node, mapping, keyPrefix) => {
     const children = node.children.map((c, i) => (
-        <React.Fragment key={keyPrefix + i}>
-            {createElement(c, mapping, keyPrefix)}
-        </React.Fragment>
+        <React.Fragment key={keyPrefix + i}>{createElement(c, mapping, keyPrefix)}</React.Fragment>
     ))
 
     switch (node.type) {
@@ -25,7 +23,7 @@ const createElement = (node, mapping, keyPrefix) => {
         }
         case NODE_VOID_ELEMENT: {
             const val = mapping[node.name]
-            if (typeof val === "function") {
+            if (typeof val === 'function') {
                 return val()
             }
 
@@ -38,14 +36,14 @@ const createElement = (node, mapping, keyPrefix) => {
                 return React.createElement(node.name, null, children)
             }
 
-            if (typeof val === "function") {
+            if (typeof val === 'function') {
                 return val(children)
             }
 
             if (React.isValidElement(val)) {
                 if (React.Children.count(val.props.children) !== 0) {
                     throw new Error(
-                        "when passing an element as value, the element should not contains children"
+                        'when passing an element as value, the element should not contains children',
                     )
                 }
 
@@ -53,7 +51,7 @@ const createElement = (node, mapping, keyPrefix) => {
             }
 
             throw new Error(
-                `Invalid mapping value for "${node.name}". Only element or render function are accepted`
+                `Invalid mapping value for "${node.name}". Only element or render function are accepted`,
             )
         }
         case NODE_PLACEHOLDER: {
@@ -63,7 +61,7 @@ const createElement = (node, mapping, keyPrefix) => {
                 return node.string
             }
 
-            if (typeof val === "function") {
+            if (typeof val === 'function') {
                 return val()
             }
 
@@ -74,12 +72,7 @@ const createElement = (node, mapping, keyPrefix) => {
     }
 }
 
-export default function Interpolate({
-    string,
-    syntax,
-    mapping = {},
-    graceful = true
-}) {
+export default function Interpolate({ string, syntax, mapping = {}, graceful = true }) {
     try {
         const tree = parser(string, syntax)
         return createElement(tree, mapping, string)
@@ -96,5 +89,5 @@ export default function Interpolate({
 Interpolate.propTypes = {
     string: PropTypes.string.isRequired,
     mapping: PropTypes.object,
-    graceful: PropTypes.bool
+    graceful: PropTypes.bool,
 }

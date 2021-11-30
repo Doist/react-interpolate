@@ -3,8 +3,8 @@ import {
     NODE_TAG_ELEMENT,
     NODE_VOID_ELEMENT,
     NODE_PLACEHOLDER,
-    NODE_TEXT
-} from "./constants"
+    NODE_TEXT,
+} from './constants'
 
 export default class Node {
     constructor({ type, children, ...fields }) {
@@ -34,32 +34,32 @@ Node.createTagNode = (token, children) =>
         type: NODE_TAG_ELEMENT,
         children,
         name: token.name,
-        token
+        token,
     })
 
-Node.createFragmentNode = children =>
+Node.createFragmentNode = (children) =>
     new Node({
         type: NODE_FRAGMENT,
-        children
+        children,
     })
 
-Node.createVoidNode = token =>
+Node.createVoidNode = (token) =>
     new Node({
         type: NODE_VOID_ELEMENT,
         name: token.name,
-        token
+        token,
     })
 
-Node.createTextNode = token =>
+Node.createTextNode = (token) =>
     new Node({
         type: NODE_TEXT,
         text: token.string,
-        token
+        token,
     })
 
-Node.createPlaceholderNode = token =>
+Node.createPlaceholderNode = (token) =>
     new Node({
         type: NODE_PLACEHOLDER,
         name: token.name,
-        token
+        token,
     })

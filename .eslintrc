@@ -1,0 +1,22 @@
+{
+    "plugins": ["import"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:prettier/recommended",
+        "plugin:import/recommended",
+        "@doist/eslint-config/react"
+    ],
+    "env": {
+        "browser": true,
+        "jest": true
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true,
+            "impliedStrict": true
+        },
+        "sourceType": "module"
+    },
+    "parser": "@babel/eslint-parser",
+    "settings": { "react": { "version": "detect" } }
+}

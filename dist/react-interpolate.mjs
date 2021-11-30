@@ -4,16 +4,16 @@ import _classCallCheck from '@babel/runtime/helpers/classCallCheck';
 import _createClass from '@babel/runtime/helpers/createClass';
 import _objectWithoutProperties from '@babel/runtime/helpers/objectWithoutProperties';
 
-var TOKEN_PLACEHOLDER = "TOKEN_PLACEHOLDER";
-var TOKEN_OPEN_TAG = "TOKEN_OPEN_TAG";
-var TOKEN_CLOSE_TAG = "TOKEN_CLOSE_TAG";
-var TOKEN_SELF_TAG = "TOKEN_SELF_TAG";
-var TOKEN_TEXT = "TOKEN_TEXT";
-var NODE_FRAGMENT = "NODE_FRAGMENT";
-var NODE_TAG_ELEMENT = "NODE_TAG_ELEMENT";
-var NODE_VOID_ELEMENT = "NODE_VOID_ELEMENT";
-var NODE_PLACEHOLDER = "NODE_PLACEHOLDER";
-var NODE_TEXT = "NODE_TEXT";
+var TOKEN_PLACEHOLDER = 'TOKEN_PLACEHOLDER';
+var TOKEN_OPEN_TAG = 'TOKEN_OPEN_TAG';
+var TOKEN_CLOSE_TAG = 'TOKEN_CLOSE_TAG';
+var TOKEN_SELF_TAG = 'TOKEN_SELF_TAG';
+var TOKEN_TEXT = 'TOKEN_TEXT';
+var NODE_FRAGMENT = 'NODE_FRAGMENT';
+var NODE_TAG_ELEMENT = 'NODE_TAG_ELEMENT';
+var NODE_VOID_ELEMENT = 'NODE_VOID_ELEMENT';
+var NODE_PLACEHOLDER = 'NODE_PLACEHOLDER';
+var NODE_TEXT = 'NODE_TEXT';
 
 var _excluded = ["type", "children"];
 
@@ -181,7 +181,7 @@ function lexer(string, syntax) {
   });
   var text = string.substring(start);
 
-  if (text !== "") {
+  if (text !== '') {
     textTokens.push({
       type: TOKEN_TEXT,
       string: text,
@@ -205,10 +205,10 @@ function parser(string, syntax) {
   var p = new Parser(tokens);
   return p.parse();
 }
-var SYNTAX_ERROR = "Syntax error. Please check if each open tag is closed correctly"; // A special token representing end of the tream
+var SYNTAX_ERROR = 'Syntax error. Please check if each open tag is closed correctly'; // A special token representing end of the tream
 
 var EPSILON = {
-  type: "EPSILON"
+  type: 'EPSILON'
 };
 /*
  * A recursive descent parser that construct a syntax tree represeting
@@ -401,7 +401,7 @@ var createElement = function createElement(node, mapping, keyPrefix) {
       {
         var val = mapping[node.name];
 
-        if (typeof val === "function") {
+        if (typeof val === 'function') {
           return val();
         }
 
@@ -416,13 +416,13 @@ var createElement = function createElement(node, mapping, keyPrefix) {
           return /*#__PURE__*/React.createElement(node.name, null, children);
         }
 
-        if (typeof _val === "function") {
+        if (typeof _val === 'function') {
           return _val(children);
         }
 
         if ( /*#__PURE__*/React.isValidElement(_val)) {
           if (React.Children.count(_val.props.children) !== 0) {
-            throw new Error("when passing an element as value, the element should not contains children");
+            throw new Error('when passing an element as value, the element should not contains children');
           }
 
           return /*#__PURE__*/React.cloneElement(_val, {
@@ -442,7 +442,7 @@ var createElement = function createElement(node, mapping, keyPrefix) {
           return node.string;
         }
 
-        if (typeof _val2 === "function") {
+        if (typeof _val2 === 'function') {
           return _val2();
         }
 
