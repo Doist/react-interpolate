@@ -12,8 +12,8 @@
         "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
         "gzip": "gzip dist/**/*.min.*js --extension=gz",
         "publish": "npm run build && npm publish",
-        "release": "git checkout master && git pull && release-it",
-        "release:auto": "git checkout master && git pull && release-it --ci"
+        "release": "git checkout master && git pull && GITHUB_TOKEN=$(grep GITHUB_TOKEN .env | cut -d '=' -f2) && release-it",
+        "release:auto": "git checkout master && git pull && GITHUB_TOKEN=$(grep GITHUB_TOKEN .env | cut -d '=' -f2) release-it --ci"
     },
     "repository": {
         "type": "git",
