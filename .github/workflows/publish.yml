@@ -1,0 +1,53 @@
+name: Release @doist/react-interpolate package
+
+on:
+    release:
+        types: [created]
+    workflow_dispatch:
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Read Node.js version from '.nvmrc'
+              id: nvmrc
+              run: |
+                  echo "::set-output name=NODE_VERSION::$(cat .nvmrc)"
+
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Lint
+              run: npm run lint
+              env:
+                  CI: true
+
+            - name: Build
+              run: npm run build
+
+            - name: Publish to GitHub Package Registry
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
+                  registry-url: https://npm.pkg.github.com/
+                  scope: "@doist"
+            - run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+            - name: Publish to npm registry
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
+                  registry-url: https://registry.npmjs.org/
+                  scope: "@doist"
+            - run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

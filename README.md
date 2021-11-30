@@ -1,8 +1,6 @@
 # react-interpolate
 
-[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)
-[![Actions Status](https://github.com/Doist/react-interpolate/workflows/CI/badge.svg)](https://github.com/Doist/react-interpolate/actions)
-
+[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip) [![Actions Status](https://github.com/Doist/react-interpolate/workflows/CI/badge.svg)](https://github.com/Doist/react-interpolate/actions)
 
 A string interpolation component that formats and interpolates a template string in a safe way.
 
@@ -25,24 +23,27 @@ function Greeting() {
 Would render the following HTML
 
 ```html
-<h1>Hello William. Here is <a href="https://orderinfo.com">your order info</a></h1>
+<h1>
+    Hello William. Here is <a href="https://orderinfo.com">your order info</a>
+</h1>
 ```
-
 
 ## Component API
 
 `<Interpolate>` component accepts the following props
 
 #### `string`
-The template string to be interpolated. Required. 
 
-Please see the [Interpolation syntax](./#interpolation-syntax) section below for more detail. 
+The template string to be interpolated. Required.
 
-#### `mapping` 
-An object that defines the values to be injected for placeholder and tags defined in the template string. Optional. 
+Please see the [Interpolation syntax](./#interpolation-syntax) section below for more detail.
 
-- For placeholder or self-closing tag, the mapping value could be any valid element value
-- For open & close tag, the mapping value could be either renderer function or an element.
+#### `mapping`
+
+An object that defines the values to be injected for placeholder and tags defined in the template string. Optional.
+
+-   For placeholder or self-closing tag, the mapping value could be any valid element value
+-   For open & close tag, the mapping value could be either renderer function or an element.
 
 ```jsx
 <Interpolate
@@ -54,9 +55,7 @@ An object that defines the values to be injected for placeholder and tags define
         hr: <hr className="break" />,
 
         // you can map open & close tag to a rendering function
-        orderLink: text => (
-            <a href="https://orderinfo.com">{text}</a>
-        ),
+        orderLink: text => <a href="https://orderinfo.com">{text}</a>,
 
         // or you can map open & close tag to an element
         supportLink: <a href="https://orderinfo.com" />
@@ -64,25 +63,20 @@ An object that defines the values to be injected for placeholder and tags define
 />
 ```
 
+#### `graceful`
 
-#### `graceful` 
-A boolean flag indicates how string syntax error or mapping  error should be handled. When true, the raw string value from the prop `string` would be rendered as a fallback in the error scenario. When false, error would be thrown instead. 
+A boolean flag indicates how string syntax error or mapping error should be handled. When true, the raw string value from the prop `string` would be rendered as a fallback in the error scenario. When false, error would be thrown instead.
 
 Optional. `true` by default.
 
-
 ```jsx
 // would render "an invalid string with unclose tag &lt;h1&gt;"
-<Interpolate
-  graceful
-  string="an invalid string with unclose tag <h1>"
-/>
+<Interpolate graceful string="an invalid string with unclose tag <h1>" />
 ```
 
-#### `syntax` 
+#### `syntax`
 
 Optional. `syntax` props allow use of react-Interpolate with different string formatting syntax. Please see the ["Custom syntax support"](#custom-syntax-support) section for more detail.
-
 
 ## Interpolation syntax
 
@@ -108,9 +102,9 @@ Placeholder name should be alphanumeric (`[A-Za-z0-9_]`). Placeholders could be 
 "Here is <a><b>you order info {name}</b></a>"
 ```
 
-Tag name should be alphanumeric (`[A-Za-z0-9_]`). 
+Tag name should be alphanumeric (`[A-Za-z0-9_]`).
 
-Open & close tag could be mapped to an element value. 
+Open & close tag could be mapped to an element value.
 
 ```jsx
 <Interpolate
@@ -135,7 +129,7 @@ Open & close tag could be mapped to an element value.
 />
 ```
 
-Open & close tag could be mapped to a rendering function, which would take a single argument that contains the enclosing text. 
+Open & close tag could be mapped to a rendering function, which would take a single argument that contains the enclosing text.
 
 ```jsx
 <Interpolate
@@ -151,8 +145,6 @@ Open & close tag could be mapped to a rendering function, which would take a sin
 />
 ```
 
-
-
 Unclosed tag or incorrect nesting of tag would result in syntax error.
 
 ```js
@@ -163,7 +155,7 @@ Unclosed tag or incorrect nesting of tag would result in syntax error.
 "Here is <a><b>your order info</a></b>"
 ```
 
-#### Self closing tag 
+#### Self closing tag
 
 ```js
 "Hello.<br/>Here is your order"
@@ -171,28 +163,26 @@ Unclosed tag or incorrect nesting of tag would result in syntax error.
 
 Tag name should be alphanumeric (`[A-Za-z0-9_]`). Self closing tags could be mapped to any valid element value.
 
-
 ## Auto tag element creation
 
-When tags are used the string but there are no correponding mapped value, it would by default create the corresponding HTML element by default. 
+When tags are used the string but there are no correponding mapped value, it would by default create the corresponding HTML element by default.
 
 ```jsx
 // would render: <h1>Hellow</h1><br/>World
-<Interpolate string="<h1>Hello</h1><br/>world"/>
+<Interpolate string="<h1>Hello</h1><br/>world" />
 ```
-
-
 
 ## Custom syntax support
 
 You may already be using a formatting syntax in your string that is different than the built-in syntax support from Interpolate. You can configure Interpolate so that it could recognize the formatting syntax that you use.
 
 For instance, you may be using [i18next](https://www.i18next.com/) which has a slightly different placeholder syntax.
+
 ```
 hello {{name}}
 ```
 
-You can define the formatting syntax of your string via  `syntax` props. 
+You can define the formatting syntax of your string via `syntax` props.
 
 ```jsx
 import Interpolate, { TOKEN_PLACEHOLDER } from "react-interpolate"
@@ -225,3 +215,16 @@ import { SYNTAX_I18NEXT } from "react-interpolate"
 />
 ```
 
+# Releasing
+
+A new version of @doist/react-interpolate is published both on npm and GitHub Package Registry whenever a new release on GitHub is created.
+
+To update the version in both `package.json` and `package-lock.json` run:
+
+```sh
+npm --no-git-tag-version version <major|minor|patch>
+```
+
+Once these changes have been pushed and merged, create a release on GitHub.
+
+A GitHub Action will automatically perform all the necessary steps and will release the version number that's specified inside the `package.json`'s `version` field so make sure that the release tag reflects the version you want to publish.
