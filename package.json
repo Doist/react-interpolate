@@ -1,6 +1,6 @@
 {
     "name": "@doist/react-interpolate",
-    "version": "0.3.7",
+    "version": "0.3.8",
     "description": "A string interpolation component that formats and interpolates a template string in a safe way",
     "main": "dist/react-interpolate.cjs",
     "module": "dist/react-interpolate.mjs",
