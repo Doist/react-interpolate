@@ -5,8 +5,8 @@
     "main": "dist/react-interpolate.cjs",
     "module": "dist/react-interpolate.mjs",
     "engines": {
-        "node": "16.13",
-        "npm": "8.1.0"
+        "node": "16",
+        "npm": "8"
     },
     "files": [
         "dist",
