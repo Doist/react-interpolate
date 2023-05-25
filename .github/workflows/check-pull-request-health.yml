@@ -1,0 +1,41 @@
+name: Check Pull Request Health
+
+on:
+    pull_request:
+        types:
+            - opened
+            - synchronize
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [16.x, 18.x]
+
+        timeout-minutes: 60
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Setup Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+
+            - name: Install dependencies
+              run: npm ci --legacy-peer-deps
+
+            - name: Lint the codebase
+              run: npm run lint
+              env:
+                  CI: true
+
+            - name: Test the codebase
+              run: npm run test
+              env:
+                  CI: true
+
+            - name: Build the codebase
+              run: npm run build

@@ -10,31 +10,32 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 60
         steps:
-            - uses: actions/checkout@v2
+            - name: Checkout repository
+              uses: actions/checkout@v3
 
             - name: Read Node.js version from '.nvmrc'
               id: nvmrc
               run: |
                   echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
 
-            - name: Setup Node
-              uses: actions/setup-node@v1
+            - name: Setup Node.js ${{ steps.nvmrc.outputs.NODE_VERSION }}
+              uses: actions/setup-node@v3
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
 
             - name: Install dependencies
               run: npm ci --legacy-peer-deps
 
-            - name: Lint
+            - name: Lint the codebase
               run: npm run lint
               env:
                   CI: true
 
-            - name: Build
+            - name: Build the codebase
               run: npm run build
 
             - name: Publish to GitHub Package Registry
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
                   registry-url: https://npm.pkg.github.com/
@@ -44,7 +45,7 @@ jobs:
                   NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
             - name: Publish to npm registry
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
                   registry-url: https://registry.npmjs.org/
