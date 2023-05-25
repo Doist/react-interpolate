@@ -1,4 +1,4 @@
-name: CI
+name: Check Pull Request Health
 
 on:
     pull_request:
