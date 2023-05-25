@@ -6,8 +6,8 @@
     "main": "dist/react-interpolate.cjs",
     "module": "dist/react-interpolate.mjs",
     "engines": {
-        "node": "16",
-        "npm": "8"
+        "node": "16 || 18",
+        "npm": "8 || 9"
     },
     "files": [
         "dist",
