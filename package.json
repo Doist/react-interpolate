@@ -1,14 +1,14 @@
 {
     "name": "@doist/react-interpolate",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "license": "MIT",
     "description": "A string interpolation component that formats and interpolates a template string in a safe way",
     "main": "dist/react-interpolate.cjs",
     "module": "dist/react-interpolate.mjs",
     "types": "dist/react-interpolate.d.ts",
     "engines": {
-        "node": "^20.0.0 || ^21.0.0",
-        "npm": "^10.0.0"
+        "node": "^20.0.0 || ^21.0.0 || ^22.0.0",
+        "npm": "^10.0.0 || ^11.0.0"
     },
     "files": [
         "dist",
