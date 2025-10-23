@@ -1,6 +1,7 @@
 {
     "name": "@doist/react-interpolate",
     "version": "2.2.1",
+    "repository": "https://github.com/Doist/react-interpolate",
     "license": "MIT",
     "description": "A string interpolation component that formats and interpolates a template string in a safe way",
     "main": "dist/react-interpolate.cjs",
@@ -23,10 +24,6 @@
         "prettify": "prettier --write ."
     },
     "prettier": "@doist/prettier-config",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Doist/react-interpolate.git"
-    },
     "keywords": [
         "react",
         "interpolate",
