@@ -1,6 +1,6 @@
 {
     "name": "@doist/react-interpolate",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "repository": "https://github.com/Doist/react-interpolate",
     "license": "MIT",
     "description": "A string interpolation component that formats and interpolates a template string in a safe way",
