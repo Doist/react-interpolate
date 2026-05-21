@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import React from 'react'
 import {
     NODE_FRAGMENT,
@@ -20,24 +19,6 @@ export interface InterpolateProps {
     syntax?: Syntax
     mapping?: Mapping
     graceful?: boolean
-}
-
-type InterpolatePropTypes = {
-    string: typeof PropTypes.string.isRequired
-    syntax: typeof PropTypes.array
-    mapping: typeof PropTypes.object
-    graceful: typeof PropTypes.bool
-}
-
-const interpolatePropTypes: InterpolatePropTypes = {
-    string: PropTypes.string.isRequired,
-    syntax: PropTypes.array,
-    mapping: PropTypes.object,
-    graceful: PropTypes.bool,
-}
-
-type InterpolateComponent = ((props: InterpolateProps) => React.ReactNode) & {
-    propTypes: typeof interpolatePropTypes
 }
 
 function assertNever(node: never): never {
@@ -117,7 +98,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
     }
 }
 
-const Interpolate: InterpolateComponent = function Interpolate({
+const Interpolate = function Interpolate({
     string,
     syntax,
     mapping = {},
@@ -135,7 +116,5 @@ const Interpolate: InterpolateComponent = function Interpolate({
         throw error
     }
 }
-
-Interpolate.propTypes = interpolatePropTypes
 
 export default Interpolate
