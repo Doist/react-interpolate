@@ -1,18 +1,19 @@
-import pkg = require('@doist/react-interpolate')
+import pkg = require("@doist/react-interpolate");
 
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 const mapping: pkg.Mapping = {
-    b: (children?: ReactNode) => children ?? null,
-    name: 'William',
-}
+  b: (children?: ReactNode) => children ?? null,
+  name: "William",
+};
 
 const props: pkg.InterpolateProps = {
-    string: '<b>{{name}}</b>',
-    syntax: pkg.SYNTAX_I18NEXT,
-    mapping,
-    graceful: true,
-}
+  string: "<b>{{name}}</b>",
+  syntax: pkg.SYNTAX_I18NEXT,
+  mapping,
+  graceful: true,
+};
 
-pkg.default(props)
-pkg.TOKEN_PLACEHOLDER
+void pkg.default(props);
+void pkg.TOKEN_PLACEHOLDER;
+void props;

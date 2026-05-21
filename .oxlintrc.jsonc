@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["dist/*", "**/node_modules/*"],
+  "plugins": ["import", "jest", "react", "typescript"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+  },
+  "overrides": [
+    {
+      // These suites use assertion helpers and no-throw checks, which trip Jest's static
+      // expect detection without indicating a real test quality problem here.
+      "files": ["__test__/**/*.{ts,tsx}"],
+      "rules": {
+        "jest/expect-expect": "off",
+      },
+    },
+    {
+      // The parser fixture strings make dynamic test titles more readable than duplicated
+      // literal prefixes.
+      "files": ["__test__/parser.test.ts"],
+      "rules": {
+        "jest/valid-title": "off",
+      },
+    },
+  ],
+}
