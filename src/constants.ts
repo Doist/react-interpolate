@@ -17,6 +17,8 @@ export type TokenType =
     | typeof TOKEN_SELF_TAG
     | typeof TOKEN_TEXT
 
+export type SyntaxTokenType = Exclude<TokenType, typeof TOKEN_TEXT>
+
 export type NodeType =
     | typeof NODE_FRAGMENT
     | typeof NODE_TAG_ELEMENT

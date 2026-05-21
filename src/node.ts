@@ -4,88 +4,91 @@ import {
     NODE_TAG_ELEMENT,
     NODE_TEXT,
     NODE_VOID_ELEMENT,
-    type NodeType,
 } from './constants'
 import type { OpenTagToken, PlaceholderToken, SelfTagToken, TextToken } from './lexer'
 
-type NodeToken = OpenTagToken | PlaceholderToken | SelfTagToken | TextToken
-
-interface NodeFields {
-    name?: string
-    text?: string
-    string?: string
-    token?: NodeToken
-}
-
-interface NodeParams extends NodeFields {
-    type: NodeType
-    children?: SyntaxNode[]
-}
-
-export default class SyntaxNode {
-    type: NodeType
+export interface FragmentNode {
+    type: typeof NODE_FRAGMENT
     children: SyntaxNode[]
-    name?: string
-    text?: string
-    string?: string
-    token?: NodeToken
+}
 
-    constructor({ type, children = [], ...fields }: NodeParams) {
-        this.type = type
-        this.children = children
+export interface TagNode {
+    type: typeof NODE_TAG_ELEMENT
+    children: SyntaxNode[]
+    name: string
+    string: string
+    token: OpenTagToken
+}
 
-        Object.assign(this, fields)
+export interface VoidNode {
+    type: typeof NODE_VOID_ELEMENT
+    children: []
+    name: string
+    string: string
+    token: SelfTagToken
+}
 
-        if (fields.token) {
-            this.string = fields.token.string
-        }
+export interface TextNode {
+    type: typeof NODE_TEXT
+    children: []
+    text: string
+    string: string
+    token: TextToken
+}
+
+export interface PlaceholderNode {
+    type: typeof NODE_PLACEHOLDER
+    children: []
+    name: string
+    string: string
+    token: PlaceholderToken
+}
+
+export type SyntaxNode = FragmentNode | TagNode | VoidNode | TextNode | PlaceholderNode
+
+export function createFragmentNode(children: SyntaxNode[]): FragmentNode {
+    return {
+        type: NODE_FRAGMENT,
+        children,
     }
+}
 
-    appendChild(child: SyntaxNode): void {
-        this.children.push(child)
+export function createTagNode(token: OpenTagToken, children: SyntaxNode[]): TagNode {
+    return {
+        type: NODE_TAG_ELEMENT,
+        children,
+        name: token.name,
+        string: token.string,
+        token,
     }
+}
 
-    get isLeaf(): boolean {
-        return this.children.length === 0
+export function createVoidNode(token: SelfTagToken): VoidNode {
+    return {
+        type: NODE_VOID_ELEMENT,
+        children: [],
+        name: token.name,
+        string: token.string,
+        token,
     }
+}
 
-    static createTagNode(token: OpenTagToken, children: SyntaxNode[]): SyntaxNode {
-        return new SyntaxNode({
-            type: NODE_TAG_ELEMENT,
-            children,
-            name: token.name,
-            token,
-        })
+export function createTextNode(token: TextToken): TextNode {
+    return {
+        type: NODE_TEXT,
+        children: [],
+        text: token.text,
+        string: token.string,
+        token,
     }
+}
 
-    static createFragmentNode(children: SyntaxNode[]): SyntaxNode {
-        return new SyntaxNode({
-            type: NODE_FRAGMENT,
-            children,
-        })
-    }
-
-    static createVoidNode(token: SelfTagToken): SyntaxNode {
-        return new SyntaxNode({
-            type: NODE_VOID_ELEMENT,
-            name: token.name,
-            token,
-        })
-    }
-
-    static createTextNode(token: TextToken): SyntaxNode {
-        return new SyntaxNode({
-            type: NODE_TEXT,
-            text: token.text,
-            token,
-        })
-    }
-
-    static createPlaceholderNode(token: PlaceholderToken): SyntaxNode {
-        return new SyntaxNode({
-            type: NODE_PLACEHOLDER,
-            name: token.name,
-            token,
-        })
+export function createPlaceholderNode(token: PlaceholderToken): PlaceholderNode {
+    return {
+        type: NODE_PLACEHOLDER,
+        children: [],
+        name: token.name,
+        string: token.string,
+        token,
     }
 }

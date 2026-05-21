@@ -4,6 +4,7 @@ import {
     TOKEN_PLACEHOLDER,
     TOKEN_SELF_TAG,
     TOKEN_TEXT,
+    type SyntaxTokenType,
     type TokenType,
 } from './constants'
 import type { Syntax } from './syntax'
@@ -35,13 +36,34 @@ export interface TextToken extends BaseToken<typeof TOKEN_TEXT> {
     text: string
 }
 
+type SyntaxToken = PlaceholderToken | OpenTagToken | CloseTagToken | SelfTagToken
 export type Token = PlaceholderToken | OpenTagToken | CloseTagToken | SelfTagToken | TextToken
+
+function getMatchName(match: RegExpExecArray): string {
+    const name = match[1]
+
+    if (name === undefined) {
+        throw new Error('Syntax rule must capture a token name')
+    }
+
+    return name
+}
+
+function createSyntaxToken(type: SyntaxTokenType, match: RegExpExecArray): SyntaxToken {
+    return {
+        type,
+        string: match[0],
+        name: getMatchName(match),
+        start: match.index,
+        end: match.index + match[0].length,
+    }
+}
 
 /*
  * Return an array of token objects.
  */
 export default function lexer(string: string, syntax: Syntax): Token[] {
-    const matches: Token[] = []
+    const matches: SyntaxToken[] = []
 
     for (const rule of syntax) {
         const { type, regex } = rule
@@ -50,13 +72,7 @@ export default function lexer(string: string, syntax: Syntax): Token[] {
 
         let result: RegExpExecArray | null
         while ((result = regex.exec(string)) !== null) {
-            matches.push({
-                type,
-                string: result[0],
-                name: result[1],
-                start: result.index,
-                end: result.index + result[0].length,
-            } as Token)
+            matches.push(createSyntaxToken(type, result))
         }
     }
 

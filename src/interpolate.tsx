@@ -7,7 +7,7 @@ import {
     NODE_TEXT,
     NODE_VOID_ELEMENT,
 } from './constants'
-import type SyntaxNode from './node'
+import type { SyntaxNode } from './node'
 import parser from './parser'
 import type { Syntax } from './syntax'
 
@@ -20,6 +20,28 @@ export interface InterpolateProps {
     syntax?: Syntax
     mapping?: Mapping
     graceful?: boolean
+}
+
+type InterpolatePropTypes = {
+    string: typeof PropTypes.string.isRequired
+    syntax: typeof PropTypes.array
+    mapping: typeof PropTypes.object
+    graceful: typeof PropTypes.bool
+}
+
+const interpolatePropTypes: InterpolatePropTypes = {
+    string: PropTypes.string.isRequired,
+    syntax: PropTypes.array,
+    mapping: PropTypes.object,
+    graceful: PropTypes.bool,
+}
+
+type InterpolateComponent = ((props: InterpolateProps) => React.ReactNode) & {
+    propTypes: typeof interpolatePropTypes
+}
+
+function assertNever(node: never): never {
+    throw new Error(`Unexpected node type: ${JSON.stringify(node)}`)
 }
 
 function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): React.ReactNode {
@@ -37,7 +59,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
             return React.createElement(React.Fragment, null, children)
 
         case NODE_VOID_ELEMENT: {
-            const nodeName = node.name ?? ''
+            const nodeName = node.name
             const value = mapping[nodeName]
 
             if (typeof value === 'function') {
@@ -48,7 +70,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
         }
 
         case NODE_TAG_ELEMENT: {
-            const nodeName = node.name ?? ''
+            const nodeName = node.name
             const value = mapping[nodeName]
 
             if (value === undefined) {
@@ -75,7 +97,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
         }
 
         case NODE_PLACEHOLDER: {
-            const nodeName = node.name ?? ''
+            const nodeName = node.name
             const value = mapping[nodeName]
 
             if (value === undefined) {
@@ -91,16 +113,16 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
         }
 
         default:
-            return null
+            return assertNever(node)
     }
 }
 
-export default function Interpolate({
+const Interpolate: InterpolateComponent = function Interpolate({
     string,
     syntax,
     mapping = {},
     graceful = true,
-}: InterpolateProps) {
+}: InterpolateProps): React.ReactNode {
     try {
         const tree = parser(string, syntax)
         return createElement(tree, mapping, string)
@@ -114,9 +136,6 @@ export default function Interpolate({
     }
 }
 
-Interpolate.propTypes = {
-    string: PropTypes.string.isRequired,
-    syntax: PropTypes.array,
-    mapping: PropTypes.object,
-    graceful: PropTypes.bool,
-}
+Interpolate.propTypes = interpolatePropTypes
+
+export default Interpolate

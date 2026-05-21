@@ -3,10 +3,10 @@ import {
     TOKEN_OPEN_TAG,
     TOKEN_PLACEHOLDER,
     TOKEN_SELF_TAG,
-    type TokenType,
+    type SyntaxTokenType,
 } from './constants'
 
-export interface SyntaxRule<T extends TokenType = TokenType> {
+export interface SyntaxRule<T extends SyntaxTokenType = SyntaxTokenType> {
     type: T
     regex: RegExp
 }

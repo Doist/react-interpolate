@@ -7,7 +7,15 @@ import {
     type TokenType,
 } from './constants'
 import lexer, { type OpenTagToken, type Token } from './lexer'
-import SyntaxNode from './node'
+import {
+    createFragmentNode,
+    createPlaceholderNode,
+    createTagNode,
+    createTextNode,
+    createVoidNode,
+    type FragmentNode,
+    type SyntaxNode,
+} from './node'
 import { SYNTAX_BUILT_IN, type Syntax } from './syntax'
 
 const SYNTAX_ERROR = 'Syntax error. Please check if each open tag is closed correctly'
@@ -24,7 +32,14 @@ const EPSILON: EpsilonToken = {
     type: 'EPSILON',
 }
 
-export default function parser(string: string, syntax: Syntax = SYNTAX_BUILT_IN): SyntaxNode {
+function isTokenOfType<T extends TokenType>(
+    token: Token | undefined,
+    type: T,
+): token is TokenByType<T> {
+    return token?.type === type
+}
+
+export default function parser(string: string, syntax: Syntax = SYNTAX_BUILT_IN): FragmentNode {
     const tokens = lexer(string, syntax)
     const parserInstance = new Parser(tokens)
 
@@ -44,7 +59,7 @@ class Parser {
         this.tags = []
     }
 
-    parse(): SyntaxNode {
+    parse(): FragmentNode {
         const tree = this.document()
         if (!this.predict(EPSILON.type)) {
             throw new Error(SYNTAX_ERROR)
@@ -53,9 +68,9 @@ class Parser {
         return tree
     }
 
-    document(): SyntaxNode {
+    document(): FragmentNode {
         const children = this.elementOrData()
-        return SyntaxNode.createFragmentNode(children)
+        return createFragmentNode(children)
     }
 
     element(): SyntaxNode {
@@ -63,7 +78,7 @@ class Parser {
         const children = this.elementOrData()
         this.endTag()
 
-        return SyntaxNode.createTagNode(tagToken, children)
+        return createTagNode(tagToken, children)
     }
 
     openTag(): OpenTagToken {
@@ -83,17 +98,17 @@ class Parser {
             }
 
             if (this.predict(TOKEN_SELF_TAG)) {
-                children.push(SyntaxNode.createVoidNode(this.match(TOKEN_SELF_TAG)))
+                children.push(createVoidNode(this.match(TOKEN_SELF_TAG)))
                 continue
             }
 
             if (this.predict(TOKEN_TEXT)) {
-                children.push(SyntaxNode.createTextNode(this.match(TOKEN_TEXT)))
+                children.push(createTextNode(this.match(TOKEN_TEXT)))
                 continue
             }
 
             if (this.predict(TOKEN_PLACEHOLDER)) {
-                children.push(SyntaxNode.createPlaceholderNode(this.match(TOKEN_PLACEHOLDER)))
+                children.push(createPlaceholderNode(this.match(TOKEN_PLACEHOLDER)))
             }
         }
 
@@ -118,11 +133,13 @@ class Parser {
     }
 
     match<T extends TokenType>(type: T): TokenByType<T> {
-        if (!this.predict(type)) {
+        const token = this.tokens.shift()
+
+        if (!isTokenOfType(token, type)) {
             throw new Error(SYNTAX_ERROR)
         }
 
-        return this.tokens.shift() as TokenByType<T>
+        return token
     }
 
     pushTag(token: OpenTagToken): void {
