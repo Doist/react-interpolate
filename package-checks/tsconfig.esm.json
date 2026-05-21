@@ -8,5 +8,5 @@
     "noEmit": true,
     "types": ["node", "react"]
   },
-  "files": ["package-types.cts"]
+  "files": ["./types.mts"]
 }

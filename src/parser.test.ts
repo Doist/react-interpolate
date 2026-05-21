@@ -1,4 +1,4 @@
-import parser from "../src/parser";
+import parser from "./parser";
 
 describe("parser", () => {
   const tests = [
@@ -16,10 +16,10 @@ describe("parser", () => {
     "<div>hello</div><b>steven</b>",
   ];
 
-  tests.forEach((string) => {
-    test(string, () => {
+  test.each(tests)("parses %s", (string) => {
+    expect(() => {
       parser(string);
-    });
+    }).not.toThrow();
   });
 });
 
@@ -33,12 +33,10 @@ describe("parser: error handling", () => {
     "<div>hello <b>{steven}</b></b></div>",
   ];
 
-  invalids.forEach((string) => {
-    test(`invalid syntax: ${string}`, () => {
-      expect(() => {
-        parser(string);
-      }).toThrow("Syntax error. Please check if each open tag is closed correctly");
-    });
+  test.each(invalids)("invalid syntax: %s", (string) => {
+    expect(() => {
+      parser(string);
+    }).toThrow("Syntax error. Please check if each open tag is closed correctly");
   });
 });
 
