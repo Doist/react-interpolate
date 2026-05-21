@@ -1,79 +1,76 @@
 {
-    "name": "@doist/react-interpolate",
-    "version": "2.2.2",
-    "type": "module",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Doist/react-interpolate.git"
-    },
-    "license": "MIT",
-    "description": "A string interpolation component that formats and interpolates a template string in a safe way",
-    "sideEffects": false,
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "import": {
-                "types": "./dist/index.d.ts",
-                "default": "./dist/index.js"
-            },
-            "require": {
-                "types": "./dist/index.d.cts",
-                "default": "./dist/index.cjs"
-            }
-        }
-    },
-    "engines": {
-        "node": "^22.18.0 || >=24.0.0",
-        "npm": "^10.0.0 || ^11.0.0"
-    },
-    "files": ["dist"],
-    "scripts": {
-        "test": "jest",
-        "lint": "eslint --ext .js,.ts,.tsx ./src ./__test__",
-        "typecheck": "tsc --project tsconfig.json",
-        "test:package": "node __test__/package-smoke.cjs && tsc --project __test__/tsconfig.package.json --noEmit && tsc --project __test__/tsconfig.package-cjs.json --noEmit",
-        "build": "tsdown && npm run test:package",
-        "prettify": "prettier --write ."
-    },
-    "prettier": "@doist/prettier-config",
-    "keywords": [
-        "react",
-        "interpolate",
-        "template",
-        "format",
-        "text",
-        "string"
-    ],
-    "peerDependencies": {
-        "react": ">=17.0.2",
-        "react-dom": ">=17.0.2"
-    },
-    "devDependencies": {
-        "@swc/core": "1.15.33",
-        "@swc/jest": "0.2.39",
-        "@types/jest": "^30.0.0",
-        "@types/react": "^18.3.27",
-        "@types/react-dom": "^18.3.7",
-        "@typescript-eslint/parser": "5.62.0",
-        "@doist/eslint-config": "7.1.2",
-        "@doist/prettier-config": "3.0.5",
-        "@testing-library/react": "13.3.0",
-        "typescript": "^5.9.3",
-        "eslint": "8.18.0",
-        "eslint-config-prettier": "8.5.0",
-        "eslint-plugin-compat": "4.0.2",
-        "eslint-plugin-import": "2.26.0",
-        "eslint-plugin-jest": "26.5.3",
-        "eslint-plugin-prettier": "4.2.1",
-        "eslint-plugin-react": "7.30.1",
-        "eslint-plugin-react-hooks": "4.6.0",
-        "jest": "28.1.2",
-        "jest-environment-jsdom": "28.1.2",
-        "prettier": "2.7.1",
-        "react": "18.2.0",
-        "react-dom": "18.2.0",
-        "tsdown": "0.22.0"
+  "name": "@doist/react-interpolate",
+  "version": "2.2.2",
+  "description": "A string interpolation component that formats and interpolates a template string in a safe way",
+  "keywords": [
+    "format",
+    "interpolate",
+    "react",
+    "string",
+    "template",
+    "text"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Doist/react-interpolate.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
+  },
+  "scripts": {
+    "test": "jest",
+    "check": "npm run check:format && npm run check:lint && npm run typecheck",
+    "check:format": "oxfmt --check",
+    "check:lint": "oxlint",
+    "lint": "npm run check:lint",
+    "typecheck": "tsc --project tsconfig.json",
+    "test:package": "node __test__/package-smoke.cjs && tsc --project __test__/tsconfig.package.json --noEmit && tsc --project __test__/tsconfig.package-cjs.json --noEmit",
+    "build": "tsdown && npm run test:package",
+    "fix": "npm run fix:format && npm run fix:lint",
+    "fix:format": "oxfmt",
+    "fix:lint": "oxlint --fix",
+    "prettify": "npm run fix:format"
+  },
+  "devDependencies": {
+    "@swc/core": "1.15.33",
+    "@swc/jest": "0.2.39",
+    "@testing-library/react": "13.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "jest": "28.1.2",
+    "jest-environment-jsdom": "28.1.2",
+    "oxfmt": "0.50.0",
+    "oxlint": "1.65.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tsdown": "0.22.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.2",
+    "react-dom": ">=17.0.2"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.0.0",
+    "npm": "^10.0.0 || ^11.0.0"
+  }
 }
