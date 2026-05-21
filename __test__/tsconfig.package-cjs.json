@@ -12,5 +12,5 @@
         },
         "types": ["node", "react"]
     },
-    "files": ["package-types.mts"]
+    "files": ["package-types.cts"]
 }

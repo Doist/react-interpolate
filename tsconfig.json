@@ -26,5 +26,5 @@
         "types": ["jest", "node"]
     },
     "include": ["src/**/*", "__test__/**/*"],
-    "exclude": ["__test__/package-types.mts"]
+    "exclude": ["__test__/package-types.mts", "__test__/package-types.cts"]
 }

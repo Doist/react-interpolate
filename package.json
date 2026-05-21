@@ -19,7 +19,7 @@
         "test": "jest",
         "lint": "eslint --ext .js,.ts,.tsx ./src ./__test__",
         "typecheck": "tsc --project tsconfig.json",
-        "test:package": "node __test__/package-smoke.cjs && tsc --project __test__/tsconfig.package.json --noEmit",
+        "test:package": "node __test__/package-smoke.cjs && tsc --project __test__/tsconfig.package.json --noEmit && tsc --project __test__/tsconfig.package-cjs.json --noEmit",
         "build": "del dist && rollup -c && tsc --project tsconfig.build.json && npm run mini-cjs && npm run mini-mjs && npm run test:package",
         "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
         "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
