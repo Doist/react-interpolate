@@ -3,14 +3,13 @@ import { render } from '@testing-library/react'
 import React from 'react'
 import Interpolate, { SYNTAX_I18NEXT, type InterpolateProps } from '../src'
 
-const suppressConsole = () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+afterEach(() => {
+    jest.restoreAllMocks()
+})
 
-    return () => {
-        warnSpy.mockRestore()
-        errorSpy.mockRestore()
-    }
+const suppressConsole = () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    jest.spyOn(console, 'error').mockImplementation(() => undefined)
 }
 
 type RenderSuccessProps = InterpolateProps & {
@@ -28,14 +27,12 @@ describe('Interpolate', () => {
     }
 
     test('when no mapping is provide', () => {
-        const restore = suppressConsole()
+        suppressConsole()
 
         renderTest({
             string: '<h1>hello <b>{name}</b></h1><br/>. welcome to todoist',
             expected: '<h1>hello <b>{name}</b></h1><br>. welcome to todoist',
         })
-
-        restore()
     })
 
     test('tag mapping', () =>
@@ -131,15 +128,13 @@ describe('Interpolate', () => {
     })
 
     test('when graceful flag is on and string contains syntax error, interpolate should return the original string and should not throw error', () => {
-        const restore = suppressConsole()
+        suppressConsole()
 
         renderTest({
             string: '</h1>',
             expected: '&lt;/h1&gt;',
             graceful: true,
         })
-
-        restore()
     })
 
     test('using SYNTAX_I18NEXT', () => {
@@ -158,14 +153,8 @@ describe('Interpolate', () => {
 })
 
 describe('Interpolate: error cases', () => {
-    let restore: (() => void) | undefined
-
-    beforeAll(() => {
-        restore = suppressConsole()
-    })
-
-    afterAll(() => {
-        restore?.()
+    beforeEach(() => {
+        suppressConsole()
     })
 
     function renderTest({ expectedError, graceful = false, ...props }: RenderErrorProps) {

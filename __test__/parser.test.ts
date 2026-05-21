@@ -41,3 +41,16 @@ describe('parser: error handling', () => {
         })
     })
 })
+
+describe('parser: custom syntax validation', () => {
+    test('syntax rules must use global regexes', () => {
+        expect(() => {
+            parser('hello {name}', [
+                {
+                    type: 'TOKEN_PLACEHOLDER',
+                    regex: /{\s*(\w+)\s*}/,
+                },
+            ])
+        }).toThrow('Syntax rule regex must use the global flag')
+    })
+})

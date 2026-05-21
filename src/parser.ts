@@ -91,28 +91,30 @@ class Parser {
     elementOrData(): SyntaxNode[] {
         const children: SyntaxNode[] = []
 
-        while (this.predict(TOKEN_OPEN_TAG, TOKEN_SELF_TAG, TOKEN_TEXT, TOKEN_PLACEHOLDER)) {
-            if (this.predict(TOKEN_OPEN_TAG)) {
-                children.push(this.element())
-                continue
-            }
+        for (;;) {
+            const { type } = this.lookahead
 
-            if (this.predict(TOKEN_SELF_TAG)) {
-                children.push(createVoidNode(this.match(TOKEN_SELF_TAG)))
-                continue
-            }
+            switch (type) {
+                case TOKEN_OPEN_TAG:
+                    children.push(this.element())
+                    continue
 
-            if (this.predict(TOKEN_TEXT)) {
-                children.push(createTextNode(this.match(TOKEN_TEXT)))
-                continue
-            }
+                case TOKEN_SELF_TAG:
+                    children.push(createVoidNode(this.match(TOKEN_SELF_TAG)))
+                    continue
 
-            if (this.predict(TOKEN_PLACEHOLDER)) {
-                children.push(createPlaceholderNode(this.match(TOKEN_PLACEHOLDER)))
+                case TOKEN_TEXT:
+                    children.push(createTextNode(this.match(TOKEN_TEXT)))
+                    continue
+
+                case TOKEN_PLACEHOLDER:
+                    children.push(createPlaceholderNode(this.match(TOKEN_PLACEHOLDER)))
+                    continue
+
+                default:
+                    return children
             }
         }
-
-        return children
     }
 
     endTag(): void {

@@ -1,0 +1,14 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "baseUrl": "..",
+        "noEmit": true,
+        "paths": {
+            "@doist/react-interpolate": ["./dist/index.d.ts"]
+        },
+        "types": ["node", "react"]
+    },
+    "include": ["package-types.mts"]
+}

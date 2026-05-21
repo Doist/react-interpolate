@@ -25,5 +25,6 @@
         "noEmit": true,
         "types": ["jest", "node"]
     },
-    "include": ["src/**/*", "__test__/**/*"]
+    "include": ["src/**/*", "__test__/**/*"],
+    "exclude": ["__test__/package-types.mts"]
 }

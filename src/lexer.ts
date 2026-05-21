@@ -59,6 +59,16 @@ function createSyntaxToken(type: SyntaxTokenType, match: RegExpExecArray): Synta
     }
 }
 
+function createTextToken(text: string, start: number, end: number): TextToken {
+    return {
+        type: TOKEN_TEXT,
+        string: text,
+        text,
+        start,
+        end,
+    }
+}
+
 /*
  * Return an array of token objects.
  */
@@ -67,6 +77,10 @@ export default function lexer(string: string, syntax: Syntax): Token[] {
 
     for (const rule of syntax) {
         const { type, regex } = rule
+
+        if (!regex.global) {
+            throw new Error('Syntax rule regex must use the global flag')
+        }
 
         regex.lastIndex = 0
 
@@ -89,26 +103,14 @@ export default function lexer(string: string, syntax: Syntax): Token[] {
         const end = match.start
         const text = string.substring(start, end)
 
-        textTokens.push({
-            type: TOKEN_TEXT,
-            string: text,
-            text,
-            start,
-            end,
-        })
+        textTokens.push(createTextToken(text, start, end))
 
         start = match.end
     })
 
     const trailingText = string.substring(start)
     if (trailingText !== '') {
-        textTokens.push({
-            type: TOKEN_TEXT,
-            string: trailingText,
-            text: trailingText,
-            start,
-            end: string.length,
-        })
+        textTokens.push(createTextToken(trailingText, start, string.length))
     }
 
     return [...textTokens, ...matches].sort((a, b) => a.start - b.start)
