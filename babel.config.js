@@ -12,6 +12,7 @@ module.exports = function (api) {
                 },
             ],
             '@babel/react',
+            '@babel/preset-typescript',
         ],
         plugins: ['@babel/plugin-transform-runtime'],
     }

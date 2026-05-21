@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "declaration": true,
+        "isolatedDeclarations": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "types": ["react"]
+    },
+    "include": ["src/**/*"]
+}
