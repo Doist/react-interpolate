@@ -8,9 +8,10 @@ function assert(condition, message) {
 }
 
 async function main() {
-    const cjsPackage = require('..')
-    const esmPackage = await import('../dist/react-interpolate.mjs')
+    const cjsPackage = require('@doist/react-interpolate')
+    const esmPackage = await import('@doist/react-interpolate')
 
+    assert(typeof cjsPackage === 'object', 'CJS package should be a namespace object')
     assert(typeof cjsPackage.default === 'function', 'CJS default export should be a function')
     assert(typeof esmPackage.default === 'function', 'ESM default export should be a function')
     assert(cjsPackage.TOKEN_PLACEHOLDER === esmPackage.TOKEN_PLACEHOLDER, 'Named exports should match')

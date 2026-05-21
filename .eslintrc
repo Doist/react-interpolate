@@ -17,12 +17,12 @@
         },
         "sourceType": "module"
     },
-    "parser": "@babel/eslint-parser",
+    "parser": "@typescript-eslint/parser",
     "settings": {
         "react": { "version": "detect" },
         "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
         "import/parsers": {
-            "@babel/eslint-parser": [".js", ".jsx", ".ts", ".tsx"]
+            "@typescript-eslint/parser": [".js", ".jsx", ".ts", ".tsx"]
         },
         "import/resolver": {
             "node": {

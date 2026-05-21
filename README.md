@@ -1,6 +1,6 @@
 # react-interpolate
 
-[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip) [![Actions Status](https://github.com/Doist/react-interpolate/workflows/CI/badge.svg)](https://github.com/Doist/react-interpolate/actions)
+[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/index.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/index.cjs?compression=gzip) [![Actions Status](https://github.com/Doist/react-interpolate/workflows/CI/badge.svg)](https://github.com/Doist/react-interpolate/actions)
 
 A string interpolation component that formats and interpolates a template string in a safe way.
 
