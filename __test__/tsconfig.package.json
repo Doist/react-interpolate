@@ -5,11 +5,7 @@
         "moduleResolution": "NodeNext",
         "strict": true,
         "skipLibCheck": true,
-        "baseUrl": "..",
         "noEmit": true,
-        "paths": {
-            "@doist/react-interpolate": ["./dist/index.d.ts"]
-        },
         "types": ["node", "react"]
     },
     "files": ["package-types.mts"]
