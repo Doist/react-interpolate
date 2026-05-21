@@ -1,35 +1,42 @@
 /* oxlint-disable react/display-name */
-import { render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import Interpolate, { type InterpolateProps } from "./interpolate";
 import { SYNTAX_I18NEXT } from "./syntax";
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const suppressConsole = () => {
   vi.spyOn(console, "warn").mockImplementation(() => undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 };
 
-type RenderSuccessProps = InterpolateProps & {
-  expected: string;
-};
-
 type RenderErrorProps = InterpolateProps & {
   expectedError: string;
 };
 
-describe("Interpolate", () => {
-  function renderHtml({ expected: _expected, graceful = false, ...props }: RenderSuccessProps) {
-    const { container } = render(<Interpolate {...props} graceful={graceful} />);
-    return container.innerHTML;
-  }
+function renderHtml({ graceful = false, ...props }: InterpolateProps) {
+  const { container } = render(<Interpolate {...props} graceful={graceful} />);
+  return container.innerHTML;
+}
 
+function expectRenderError({ expectedError, graceful = false, ...props }: RenderErrorProps) {
+  expect(() => {
+    renderToStaticMarkup(<Interpolate {...props} graceful={graceful} />);
+  }).toThrow(expectedError);
+}
+
+describe("Interpolate", () => {
   test("when no mapping is provide", () => {
     suppressConsole();
 
     expect(
       renderHtml({
         string: "<h1>hello <b>{name}</b></h1><br/>. welcome to todoist",
-        expected: "<h1>hello <b>{name}</b></h1><br>. welcome to todoist",
       }),
     ).toEqual("<h1>hello <b>{name}</b></h1><br>. welcome to todoist");
   });
@@ -42,7 +49,6 @@ describe("Interpolate", () => {
           b: (children) => <i>{children}</i>,
           h1: (children) => <h2>{children}</h2>,
         },
-        expected: "<h2>hello <i>steven</i></h2>. welcome to todoist",
       }),
     ).toEqual("<h2>hello <i>steven</i></h2>. welcome to todoist"));
 
@@ -54,7 +60,6 @@ describe("Interpolate", () => {
           b: <i />,
           h1: <h2 />,
         },
-        expected: "<h2>hello <i>steven</i></h2>. welcome to todoist",
       }),
     ).toEqual("<h2>hello <i>steven</i></h2>. welcome to todoist"));
 
@@ -66,7 +71,6 @@ describe("Interpolate", () => {
           greeting: "hi",
           name: () => <i>steven</i>,
         },
-        expected: "hi <b><i>steven</i></b>. welcome to todoist",
       }),
     ).toEqual("hi <b><i>steven</i></b>. welcome to todoist"));
 
@@ -77,7 +81,6 @@ describe("Interpolate", () => {
         mapping: {
           br: <hr />,
         },
-        expected: "hello <hr>",
       }),
     ).toEqual("hello <hr>"));
 
@@ -91,7 +94,6 @@ describe("Interpolate", () => {
           name: "steven",
           br: <hr />,
         },
-        expected: "<h2>hello <i>steven</i></h2>.<hr> welcome to todoist",
       }),
     ).toEqual("<h2>hello <i>steven</i></h2>.<hr> welcome to todoist"));
 
@@ -109,7 +111,6 @@ describe("Interpolate", () => {
           name: "steven",
           br: <hr />,
         },
-        expected: '<h2 class="subheader">hello <i>steven</i></h2>.<hr> welcome to todoist',
       }),
     ).toEqual('<h2 class="subheader">hello <i>steven</i></h2>.<hr> welcome to todoist');
   });
@@ -122,7 +123,6 @@ describe("Interpolate", () => {
           name: "steven",
           br: <hr />,
         },
-        expected: "hello steven<hr> welcome to todoist",
       }),
     ).toEqual("hello steven<hr> welcome to todoist"));
 
@@ -134,8 +134,6 @@ describe("Interpolate", () => {
           name: "<script>window.xss = 1</script>",
           br: "<script>window.xss = 1</script>",
         },
-        expected:
-          "hello &lt;script&gt;window.xss = 1&lt;/script&gt;&lt;script&gt;window.xss = 1&lt;/script&gt; welcome to todoist",
       }),
     ).toEqual(
       "hello &lt;script&gt;window.xss = 1&lt;/script&gt;&lt;script&gt;window.xss = 1&lt;/script&gt; welcome to todoist",
@@ -150,7 +148,6 @@ describe("Interpolate", () => {
     expect(
       renderHtml({
         string: "</h1>",
-        expected: "&lt;/h1&gt;",
         graceful: true,
       }),
     ).toEqual("&lt;/h1&gt;");
@@ -167,49 +164,32 @@ describe("Interpolate", () => {
           name: "steven",
           br: <hr />,
         },
-        expected: '<h2 class="subheader">hello <i>steven</i></h2>.<hr> welcome to todoist',
       }),
     ).toEqual('<h2 class="subheader">hello <i>steven</i></h2>.<hr> welcome to todoist');
   });
 });
 
 describe("Interpolate: error cases", () => {
-  beforeEach(() => {
-    suppressConsole();
-  });
-
-  test("non-closing tag", () => {
-    const props: RenderErrorProps = {
+  test("non-closing tag", () =>
+    expectRenderError({
       string: "<b>",
       expectedError: "Syntax error. Please check if each open tag is closed correctly",
-    };
+      graceful: false,
+    }));
 
-    expect(() => {
-      Interpolate({ ...props, graceful: false });
-    }).toThrow(props.expectedError);
-  });
-
-  test("mapping value for tag should always be a function", () => {
-    const props: RenderErrorProps = {
+  test("mapping value for tag should always be a function", () =>
+    expectRenderError({
       string: "<h1>hello</h1>. welcome to todoist",
       mapping: { h1: "hi" },
       expectedError: "Invalid mapping value for",
-    };
+      graceful: false,
+    }));
 
-    expect(() => {
-      Interpolate({ ...props, graceful: false });
-    }).toThrow(props.expectedError);
-  });
-
-  test("when passing element as value but the element contains children, error should be thrown", () => {
-    const props: RenderErrorProps = {
+  test("when passing element as value but the element contains children, error should be thrown", () =>
+    expectRenderError({
       string: "<h1>hello</h1>. welcome to todoist",
       mapping: { h1: <h1>hi</h1> },
       expectedError: "when passing an element as value, the element should not contains children",
-    };
-
-    expect(() => {
-      Interpolate({ ...props, graceful: false });
-    }).toThrow(props.expectedError);
-  });
+      graceful: false,
+    }));
 });
