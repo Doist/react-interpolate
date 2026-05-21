@@ -1,30 +1,34 @@
 /* eslint-disable react/display-name */
-import React from 'react'
 import { render } from '@testing-library/react'
-import Interpolate, { SYNTAX_I18NEXT } from '../src'
+import React from 'react'
+import Interpolate, { SYNTAX_I18NEXT, type InterpolateProps } from '../src'
 
-Interpolate.defaultProps = {
-    graceful: false,
-}
-
-const surpressConsole = () => {
-    const w = jest.spyOn(console, 'warn').mockImplementation()
-    const e = jest.spyOn(console, 'error').mockImplementation()
+const suppressConsole = () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
     return () => {
-        w.mockRestore()
-        e.mockRestore()
+        warnSpy.mockRestore()
+        errorSpy.mockRestore()
     }
 }
 
+type RenderSuccessProps = InterpolateProps & {
+    expected: string
+}
+
+type RenderErrorProps = InterpolateProps & {
+    expectedError: string
+}
+
 describe('Interpolate', () => {
-    function renderTest({ expected, ...props }) {
-        const { container } = render(<Interpolate {...props} />)
+    function renderTest({ expected, graceful = false, ...props }: RenderSuccessProps) {
+        const { container } = render(<Interpolate {...props} graceful={graceful} />)
         expect(container.innerHTML).toEqual(expected)
     }
 
     test('when no mapping is provide', () => {
-        const restore = surpressConsole() // Interpolate will output warning when no mapping is provided
+        const restore = suppressConsole()
 
         renderTest({
             string: '<h1>hello <b>{name}</b></h1><br/>. welcome to todoist',
@@ -38,8 +42,8 @@ describe('Interpolate', () => {
         renderTest({
             string: '<h1>hello <b>steven</b></h1>. welcome to todoist',
             mapping: {
-                b: (child) => <i>{child}</i>,
-                h1: (child) => <h2>{child}</h2>,
+                b: (children) => <i>{children}</i>,
+                h1: (children) => <h2>{children}</h2>,
             },
             expected: '<h2>hello <i>steven</i></h2>. welcome to todoist',
         }))
@@ -77,8 +81,8 @@ describe('Interpolate', () => {
         renderTest({
             string: '<h1>hello <b>{name}</b></h1>.<br/> welcome to todoist',
             mapping: {
-                h1: (child) => <h2>{child}</h2>,
-                b: (child) => <i>{child}</i>,
+                h1: (children) => <h2>{children}</h2>,
+                b: (children) => <i>{children}</i>,
                 name: 'steven',
                 br: <hr />,
             },
@@ -86,16 +90,15 @@ describe('Interpolate', () => {
         }))
 
     test('combination of mapping with function component', () => {
-        // eslint-disable-next-line
-        const Subheader = ({ children }) => {
+        const Subheader = ({ children }: React.PropsWithChildren) => {
             return <h2 className="subheader">{children}</h2>
         }
 
         renderTest({
             string: '<h1>hello <b>{name}</b></h1>.<br/> welcome to todoist',
             mapping: {
-                h1: (child) => <Subheader>{child}</Subheader>,
-                b: (child) => <i>{child}</i>,
+                h1: (children) => <Subheader>{children}</Subheader>,
+                b: (children) => <i>{children}</i>,
                 name: 'steven',
                 br: <hr />,
             },
@@ -124,11 +127,11 @@ describe('Interpolate', () => {
                 'hello &lt;script&gt;window.xss = 1&lt;/script&gt;&lt;script&gt;window.xss = 1&lt;/script&gt; welcome to todoist',
         })
 
-        expect(window.css).toBeUndefined()
+        expect((window as typeof window & { xss?: number }).xss).toBeUndefined()
     })
 
     test('when graceful flag is on and string contains syntax error, interpolate should return the original string and should not throw error', () => {
-        const restore = surpressConsole()
+        const restore = suppressConsole()
 
         renderTest({
             string: '</h1>',
@@ -144,8 +147,8 @@ describe('Interpolate', () => {
             syntax: SYNTAX_I18NEXT,
             string: '<0>hello <b>{{name}}</b></0>.<br/> welcome to todoist',
             mapping: {
-                0: (child) => <h2 className="subheader">{child}</h2>,
-                b: (child) => <i>{child}</i>,
+                0: (children) => <h2 className="subheader">{children}</h2>,
+                b: (children) => <i>{children}</i>,
                 name: 'steven',
                 br: <hr />,
             },
@@ -155,17 +158,21 @@ describe('Interpolate', () => {
 })
 
 describe('Interpolate: error cases', () => {
-    let restore
+    let restore: (() => void) | undefined
+
     beforeAll(() => {
-        restore = surpressConsole()
-    })
-    afterAll(() => {
-        restore()
+        restore = suppressConsole()
     })
 
-    function renderTest({ expectedError, ...props }) {
+    afterAll(() => {
+        restore?.()
+    })
+
+    function renderTest({ expectedError, graceful = false, ...props }: RenderErrorProps) {
         return () => {
-            expect(() => render(<Interpolate {...props} />)).toThrow(expectedError)
+            expect(() => render(<Interpolate {...props} graceful={graceful} />)).toThrow(
+                expectedError,
+            )
         }
     }
 

@@ -1,6 +1,19 @@
-import { TOKEN_PLACEHOLDER, TOKEN_OPEN_TAG, TOKEN_CLOSE_TAG, TOKEN_SELF_TAG } from './constants'
+import {
+    TOKEN_CLOSE_TAG,
+    TOKEN_OPEN_TAG,
+    TOKEN_PLACEHOLDER,
+    TOKEN_SELF_TAG,
+    type TokenType,
+} from './constants'
 
-export const SYNTAX_BUILT_IN = [
+export interface SyntaxRule<T extends TokenType = TokenType> {
+    type: T
+    regex: RegExp
+}
+
+export type Syntax = SyntaxRule[]
+
+export const SYNTAX_BUILT_IN: Syntax = [
     {
         type: TOKEN_PLACEHOLDER,
         regex: /{\s*(\w+)\s*}/g,
@@ -16,7 +29,7 @@ export const SYNTAX_BUILT_IN = [
     { type: TOKEN_SELF_TAG, regex: /<(\w+)\s*\/>/g },
 ]
 
-export const SYNTAX_I18NEXT = [
+export const SYNTAX_I18NEXT: Syntax = [
     {
         type: TOKEN_PLACEHOLDER,
         regex: /{{\s*(\w+)\s*}}/g,
