@@ -23,8 +23,7 @@
     "useUnknownInCatchVariables": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["jest", "node"]
+    "types": ["vitest/globals", "node"]
   },
-  "include": ["src/**/*", "__test__/**/*"],
-  "exclude": ["__test__/package-types.mts", "__test__/package-types.cts"]
+  "include": ["src/**/*"]
 }
