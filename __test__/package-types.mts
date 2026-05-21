@@ -18,6 +18,6 @@ const props: InterpolateProps = {
   graceful: true,
 };
 
-void Interpolate;
+void Interpolate(props);
 void TOKEN_PLACEHOLDER;
 void props;

@@ -14,9 +14,6 @@ const props: pkg.InterpolateProps = {
   graceful: true,
 };
 
-const Interpolate: typeof pkg.default = pkg.default;
-const tokenPlaceholder: pkg.TokenType = pkg.TOKEN_PLACEHOLDER;
-
-void Interpolate;
-void tokenPlaceholder;
+void pkg.default(props);
+void pkg.TOKEN_PLACEHOLDER;
 void props;
