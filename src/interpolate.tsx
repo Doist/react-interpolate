@@ -62,7 +62,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
         return value(children);
       }
 
-      if (React.isValidElement(value)) {
+      if (React.isValidElement<{ children?: React.ReactNode }>(value)) {
         if (React.Children.count(value.props.children) !== 0) {
           throw new Error(
             "when passing an element as value, the element should not contains children",
