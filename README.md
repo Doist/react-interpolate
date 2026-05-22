@@ -215,14 +215,15 @@ import { SYNTAX_I18NEXT } from "react-interpolate"
 
 # Releasing
 
-A new version of @doist/react-interpolate is published both on npm and GitHub Package Registry whenever a new release on GitHub is created.
+Merges to `main` automatically trigger `semantic-release`.
 
-To update the version in both `package.json` and `package-lock.json` run:
+The release workflow will:
 
-```sh
-npm --no-git-tag-version version <major|minor|patch>
-```
+- determine the next version from Conventional Commits
+- update `package.json`, `package-lock.json`, and `CHANGELOG.md`
+- create the Git tag and GitHub release
+- publish `@doist/react-interpolate` to both npm and GitHub Packages
 
-Once these changes have been pushed and merged, create a release on GitHub.
+This means there is no manual version bump and no manual GitHub release creation step anymore.
 
-A GitHub Action will automatically perform all the necessary steps and will release the version number that's specified inside the `package.json`'s `version` field so make sure that the release tag reflects the version you want to publish.
+Because the repository uses squash-merge style commit messages, pull request titles must follow the [Conventional Commits specification](https://www.conventionalcommits.org/). CI validates this automatically.
