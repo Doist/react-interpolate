@@ -10,6 +10,13 @@ function assert(condition, message) {
 async function main() {
   const cjsPackage = require("@doist/react-interpolate");
   const esmPackage = await import("@doist/react-interpolate");
+  const props = {
+    string: "<b>{name}</b>",
+    mapping: {
+      b: React.createElement("strong"),
+      name: "William",
+    },
+  };
 
   assert(typeof cjsPackage === "object", "CJS package should be a namespace object");
   assert(typeof cjsPackage.default === "function", "CJS default export should be a function");
@@ -19,17 +26,11 @@ async function main() {
     "Named exports should match",
   );
 
-  const html = renderToStaticMarkup(
-    React.createElement(cjsPackage.default, {
-      string: "<b>{name}</b>",
-      mapping: {
-        b: React.createElement("strong"),
-        name: "William",
-      },
-    }),
-  );
+  const cjsHtml = renderToStaticMarkup(React.createElement(cjsPackage.default, props));
+  const esmHtml = renderToStaticMarkup(React.createElement(esmPackage.default, props));
 
-  assert(html === "<strong>William</strong>", "Built package should render expected HTML");
+  assert(cjsHtml === "<strong>William</strong>", "CJS build should render expected HTML");
+  assert(esmHtml === "<strong>William</strong>", "ESM build should render expected HTML");
 }
 
 main().catch((error) => {

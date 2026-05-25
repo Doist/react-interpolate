@@ -1,4 +1,6 @@
+import { TOKEN_PLACEHOLDER } from "./constants";
 import parser from "./parser";
+import { createSyntaxRule } from "./syntax";
 
 describe("parser", () => {
   const tests = [
@@ -45,10 +47,19 @@ describe("parser: custom syntax validation", () => {
     expect(() => {
       parser("hello {name}", [
         {
-          type: "TOKEN_PLACEHOLDER",
+          type: TOKEN_PLACEHOLDER,
           regex: /{\s*(\w+)\s*}/,
+          getName(match) {
+            return match[1] ?? "";
+          },
         },
       ]);
     }).toThrow("Syntax rule regex must use the global flag");
+  });
+
+  test("syntax rules must capture a token name", () => {
+    expect(() => {
+      parser("hello {name}", [createSyntaxRule(TOKEN_PLACEHOLDER, /{\s*\w+\s*}/g, 1)]);
+    }).toThrow("Syntax rule must capture a token name");
   });
 });

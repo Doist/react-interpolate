@@ -180,16 +180,13 @@ For instance, you may be using [i18next](https://www.i18next.com/) which has a s
 hello {{name}}
 ```
 
-You can define the formatting syntax of your string via `syntax` props.
+You can define the formatting syntax of your string via `syntax` props. Use `createSyntaxRule` so the token name capture group is explicit and validated.
 
 ```jsx
-import Interpolate, { TOKEN_PLACEHOLDER } from "react-interpolate"
+import Interpolate, { TOKEN_PLACEHOLDER, createSyntaxRule } from "react-interpolate"
 
 const i18nNextSyntax = [
-    {
-        type: TOKEN_PLACEHOLDER,
-        regex: /{{\s*(\w+)\s*}}/g
-    }
+    createSyntaxRule(TOKEN_PLACEHOLDER, /{{\s*(\w+)\s*}}/g, 1)
 ]
 
 // will output "hi steven"

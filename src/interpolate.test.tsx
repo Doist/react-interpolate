@@ -1,12 +1,11 @@
 /* oxlint-disable react/display-name */
-import { cleanup, render } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Interpolate, { type InterpolateProps } from "./interpolate";
 import { SYNTAX_I18NEXT } from "./syntax";
 
 afterEach(() => {
-  cleanup();
   vi.restoreAllMocks();
 });
 

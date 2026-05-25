@@ -7,7 +7,7 @@ import {
   type SyntaxTokenType,
   type TokenType,
 } from "./constants";
-import type { Syntax } from "./syntax";
+import type { Syntax, SyntaxRule } from "./syntax";
 
 interface BaseToken<T extends TokenType> {
   type: T;
@@ -39,21 +39,11 @@ export interface TextToken extends BaseToken<typeof TOKEN_TEXT> {
 type SyntaxToken = PlaceholderToken | OpenTagToken | CloseTagToken | SelfTagToken;
 export type Token = PlaceholderToken | OpenTagToken | CloseTagToken | SelfTagToken | TextToken;
 
-function getMatchName(match: RegExpExecArray): string {
-  const name = match[1];
-
-  if (name === undefined) {
-    throw new Error("Syntax rule must capture a token name");
-  }
-
-  return name;
-}
-
-function createSyntaxToken(type: SyntaxTokenType, match: RegExpExecArray): SyntaxToken {
+function createSyntaxToken(rule: SyntaxRule<SyntaxTokenType>, match: RegExpExecArray): SyntaxToken {
   return {
-    type,
+    type: rule.type,
     string: match[0],
-    name: getMatchName(match),
+    name: rule.getName(match),
     start: match.index,
     end: match.index + match[0].length,
   };
@@ -76,7 +66,7 @@ export default function lexer(string: string, syntax: Syntax): Token[] {
   const matches: SyntaxToken[] = [];
 
   for (const rule of syntax) {
-    const { type, regex } = rule;
+    const { regex } = rule;
 
     if (!regex.global) {
       throw new Error("Syntax rule regex must use the global flag");
@@ -86,7 +76,7 @@ export default function lexer(string: string, syntax: Syntax): Token[] {
 
     let result: RegExpExecArray | null;
     while ((result = regex.exec(string)) !== null) {
-      matches.push(createSyntaxToken(type, result));
+      matches.push(createSyntaxToken(rule, result));
     }
   }
 

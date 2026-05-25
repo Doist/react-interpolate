@@ -10,7 +10,9 @@ import type { SyntaxNode } from "./node";
 import parser from "./parser";
 import type { Syntax } from "./syntax";
 
-export type MappingRenderFunction = (children?: React.ReactNode) => React.ReactNode;
+export type MappingRenderFunction =
+  | (() => React.ReactNode)
+  | ((children: React.ReactNode) => React.ReactNode);
 export type MappingValue = React.ReactNode | MappingRenderFunction;
 export type Mapping = Record<string, MappingValue>;
 
@@ -44,7 +46,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
       const value = mapping[nodeName];
 
       if (typeof value === "function") {
-        return value();
+        return (value as () => React.ReactNode)();
       }
 
       return value ?? React.createElement(nodeName, null);
@@ -59,7 +61,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
       }
 
       if (typeof value === "function") {
-        return value(children);
+        return (value as (children: React.ReactNode) => React.ReactNode)(children);
       }
 
       if (React.isValidElement<{ children?: React.ReactNode }>(value)) {
@@ -87,7 +89,7 @@ function createElement(node: SyntaxNode, mapping: Mapping, keyPrefix: string): R
       }
 
       if (typeof value === "function") {
-        return value();
+        return (value as () => React.ReactNode)();
       }
 
       return value;

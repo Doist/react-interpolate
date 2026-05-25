@@ -3,7 +3,7 @@ import pkg = require("@doist/react-interpolate");
 import type { ReactNode } from "react";
 
 const mapping: pkg.Mapping = {
-  b: (children?: ReactNode) => children ?? null,
+  b: (children: ReactNode) => children,
   name: "William",
 };
 
