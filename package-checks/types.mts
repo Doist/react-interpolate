@@ -7,7 +7,7 @@ import Interpolate, {
 import type { ReactNode } from "react";
 
 const mapping: Mapping = {
-  b: (children?: ReactNode) => children ?? null,
+  b: (children: ReactNode) => children,
   name: "William",
 };
 
