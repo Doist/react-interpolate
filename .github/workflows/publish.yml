@@ -17,7 +17,7 @@ jobs:
         timeout-minutes: 60
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Read Node.js version from '.nvmrc'
               id: nvmrc
@@ -25,7 +25,7 @@ jobs:
                   echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
 
             - name: Setup Node.js ${{ steps.nvmrc.outputs.NODE_VERSION }}
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
 
@@ -44,7 +44,7 @@ jobs:
               run: npm run build
 
             - name: Publish to GitHub Package Registry
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
                   registry-url: https://npm.pkg.github.com/
@@ -57,7 +57,7 @@ jobs:
               run: rm -f $NPM_CONFIG_USERCONFIG
 
             - name: Publish to npm registry
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ steps.nvmrc.outputs.NODE_VERSION }}
                   registry-url: https://registry.npmjs.org/
