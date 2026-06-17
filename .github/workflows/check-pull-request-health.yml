@@ -12,7 +12,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [16.x, 18.x]
+                node-version: [22.x, 24.x]
 
         timeout-minutes: 60
         steps:
