@@ -7,6 +7,10 @@
     "main": "dist/react-interpolate.cjs",
     "module": "dist/react-interpolate.mjs",
     "types": "dist/react-interpolate.d.ts",
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
     "engines": {
         "node": "^20.0.0 || ^21.0.0 || ^22.0.0",
         "npm": "^10.0.0 || ^11.0.0"
@@ -21,7 +25,8 @@
         "build": "del dist && rollup -c && npm run mini-cjs && npm run mini-mjs",
         "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
         "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
-        "prettify": "prettier --write ."
+        "prettify": "prettier --write .",
+        "prepublishOnly": "npm run build && npm run test"
     },
     "prettier": "@doist/prettier-config",
     "keywords": [
@@ -47,8 +52,11 @@
         "@babel/runtime": "7.18.6",
         "@doist/eslint-config": "7.1.2",
         "@doist/prettier-config": "3.0.5",
+        "@semantic-release/changelog": "6.0.3",
+        "@semantic-release/git": "10.0.1",
         "@testing-library/react": "13.3.0",
         "babel-jest": "28.1.2",
+        "conventional-changelog-conventionalcommits": "9.3.1",
         "core-js": "3.23.3",
         "del-cli": "4.0.1",
         "eslint": "8.18.0",
@@ -68,6 +76,7 @@
         "rollup": "2.75.7",
         "rollup-plugin-babel": "4.4.0",
         "rollup-plugin-copy": "3.5.0",
+        "semantic-release": "25.0.5",
         "uglify-es": "3.3.9"
     }
 }

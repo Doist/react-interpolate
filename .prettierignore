@@ -1,1 +1,4 @@
 dist/**
+
+# semantic-release manages this file's formatting
+CHANGELOG.md

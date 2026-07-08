@@ -1,0 +1,34 @@
+/**
+ * @type {import('semantic-release').GlobalConfig}
+ */
+
+const prereleaseBranches = [{ name: 'next', prerelease: true }]
+
+const isPrerelease = prereleaseBranches.some((b) => b.name === process.env.GITHUB_REF_NAME)
+
+module.exports = {
+    branches: ['main', ...prereleaseBranches],
+    plugins: [
+        ['@semantic-release/commit-analyzer', { preset: 'conventionalcommits' }],
+        ['@semantic-release/release-notes-generator', { preset: 'conventionalcommits' }],
+        // Only update CHANGELOG.md and commit back on stable releases
+        ...(isPrerelease ? [] : ['@semantic-release/changelog']),
+        // Publishes to npm using OIDC trusted publishing; the build and test
+        // suite run first via the package's `prepublishOnly` script.
+        '@semantic-release/npm',
+        ...(isPrerelease
+            ? []
+            : [
+                  [
+                      '@semantic-release/git',
+                      {
+                          assets: ['CHANGELOG.md', 'package.json', 'package-lock.json'],
+                          // eslint-disable-next-line no-template-curly-in-string
+                          message:
+                              'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+                      },
+                  ],
+              ]),
+        '@semantic-release/github',
+    ],
+}
