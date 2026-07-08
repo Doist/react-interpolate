@@ -215,14 +215,15 @@ import { SYNTAX_I18NEXT } from "react-interpolate"
 
 # Releasing
 
-A new version of @doist/react-interpolate is published both on npm and GitHub Package Registry whenever a new release on GitHub is created.
+Releases are fully automated with [semantic-release](https://semantic-release.gitbook.io/). There is no manual version bump: the next version number, the changelog, the git tag, the GitHub release, and the npm/GitHub Package Registry publishes are all derived from the commit history.
 
-To update the version in both `package.json` and `package-lock.json` run:
+Every push to `main` runs the `Release` workflow, which:
 
-```sh
-npm --no-git-tag-version version <major|minor|patch>
-```
+1. analyses the [Conventional Commits](https://www.conventionalcommits.org/) since the last release to determine the next version (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` → major),
+2. updates `CHANGELOG.md`, `package.json`, and `package-lock.json` and commits them back,
+3. tags the release and publishes the GitHub release notes, and
+4. publishes the package to both npm (with provenance) and the GitHub Package Registry.
 
-Once these changes have been pushed and merged, create a release on GitHub.
+Because the version is inferred from commits, **pull request titles and commits must follow the Conventional Commits format** — this is enforced by the `Semantic Pull Request` check. If a batch of commits contains no releasable changes (e.g. only `chore:`/`docs:`/`ci:`), no release is published.
 
-A GitHub Action will automatically perform all the necessary steps and will release the version number that's specified inside the `package.json`'s `version` field so make sure that the release tag reflects the version you want to publish.
+Pushes to the `next` branch publish a prerelease on the `next` dist-tag without updating the changelog.
