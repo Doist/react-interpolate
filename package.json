@@ -25,7 +25,8 @@
         "build": "del dist && rollup -c && npm run mini-cjs && npm run mini-mjs",
         "mini-cjs": "uglifyjs dist/react-interpolate.cjs --compress --mangle --enclose --output  dist/react-interpolate.min.cjs",
         "mini-mjs": "uglifyjs dist/react-interpolate.mjs --compress --mangle --enclose --output dist/react-interpolate.min.mjs",
-        "prettify": "prettier --write ."
+        "prettify": "prettier --write .",
+        "prepublishOnly": "npm run build && npm run test"
     },
     "prettier": "@doist/prettier-config",
     "keywords": [
@@ -52,7 +53,6 @@
         "@doist/eslint-config": "7.1.2",
         "@doist/prettier-config": "3.0.5",
         "@semantic-release/changelog": "6.0.3",
-        "@semantic-release/exec": "7.1.0",
         "@semantic-release/git": "10.0.1",
         "@testing-library/react": "13.3.0",
         "babel-jest": "28.1.2",

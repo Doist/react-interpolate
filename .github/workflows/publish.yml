@@ -13,8 +13,6 @@ permissions:
     issues: write
     # Enable `semantic-release` to post comments on pull requests
     pull-requests: write
-    # Enable publishing to the GitHub Package Registry
-    packages: write
     # Enable the use of OIDC for trusted publishing and npm provenance
     id-token: write
 
@@ -76,26 +74,10 @@ jobs:
             - name: Install dependencies
               run: npm ci --legacy-peer-deps
 
-            - name: Lint the codebase
-              run: npm run lint
-              env:
-                  CI: true
-
-            - name: Test the codebase
-              run: npm run test
-              env:
-                  CI: true
-
-            - name: Build the codebase
-              run: npm run build
-
             - name: Release
               run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-                  # Used by the GitHub Package Registry publish step in release.config.js.
-                  # The default workflow token carries the `packages: write` scope.
-                  GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GIT_AUTHOR_NAME: ${{ steps.generate_token.outputs.app-slug }}[bot]
                   GIT_AUTHOR_EMAIL: ${{ steps.bot_user.outputs.id }}+${{ steps.generate_token.outputs.app-slug }}[bot]@users.noreply.github.com
                   GIT_COMMITTER_NAME: ${{ steps.generate_token.outputs.app-slug }}[bot]

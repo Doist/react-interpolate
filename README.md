@@ -222,7 +222,7 @@ Every push to `main` runs the `Release` workflow, which:
 1. analyses the [Conventional Commits](https://www.conventionalcommits.org/) since the last release to determine the next version (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` → major),
 2. updates `CHANGELOG.md`, `package.json`, and `package-lock.json` and commits them back,
 3. tags the release and publishes the GitHub release notes, and
-4. publishes the package to both npm (with provenance) and the GitHub Package Registry.
+4. publishes the package to npm with provenance.
 
 Because the version is inferred from commits, **pull request titles and commits must follow the Conventional Commits format** — this is enforced by the `Semantic Pull Request` check. If a batch of commits contains no releasable changes (e.g. only `chore:`/`docs:`/`ci:`), no release is published.
 
