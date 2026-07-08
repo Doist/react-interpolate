@@ -16,5 +16,10 @@ jobs:
         steps:
             - name: Validate pull request title
               uses: amannn/action-semantic-pull-request@01d5fd8a8ebb9aafe902c40c53f0f4744f7381eb
+              # Also require the message to be conventional when the PR is a
+              # single commit, since a non-squash merge lands that commit
+              # verbatim and semantic-release reads it to compute the release.
+              with:
+                  validateSingleCommit: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
