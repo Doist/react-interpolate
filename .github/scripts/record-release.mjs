@@ -6,6 +6,7 @@ import { compareVersions } from './release-policy.mjs'
 import { repository } from './release-source.mjs'
 import { verifyRecordFiles } from './record-data.mjs'
 import { withGitRecord } from './record-git.mjs'
+import { requirePublishedRecord, verifyRecordIdentity, verifyRecordAssets } from './record-state.mjs'
 
 export function completeRecord(release, directory, io) {
     verifyRecordFiles(directory, release)
@@ -42,41 +43,27 @@ export function completeRecord(release, directory, io) {
         'release.json',
         ...Object.values(release.recordFiles).map((entry) => entry.filename),
     ]
-    for (const filename of required) {
-        const expected = readFileSync(join(directory, filename))
-        const asset = record.assets.find((item) => item.name === filename)
-        if (asset) {
-            assert.equal(
-                asset.state,
-                'uploaded',
-                'Incomplete asset: retain original bytes and resolve the interrupted upload manually',
-            )
-            assert.deepEqual(
-                io.readAsset(asset),
-                expected,
-                `Existing ${filename} differs; never overwrite release assets`,
-            )
-        } else {
-            assert.equal(
-                record.draft,
-                true,
-                `Published release lacks ${filename}; stop for original-byte manual recovery, never recreate the release`,
-            )
-            io.uploadAsset(release.gitTag, join(directory, filename))
-        }
+    const expectedAssets = new Map(
+        required.map((filename) => [filename, readFileSync(join(directory, filename))]),
+    )
+    const identity = {
+        id: record.id,
+        tag_name: release.gitTag,
+        target_commitish: target,
+        prerelease: release.prerelease,
     }
+    const verifyRecord = (value) => {
+        verifyRecordIdentity(value, identity)
+        assert.equal(io.tagCommit(release.gitTag), target, 'Release tag target changed')
+        verifyRecordAssets(value, expectedAssets, io.readAsset)
+    }
+    verifyRecordIdentity(record, identity)
+    const missing = verifyRecordAssets(record, expectedAssets, io.readAsset, true)
+    for (const filename of missing) io.uploadAsset(release.gitTag, join(directory, filename))
     // Re-read after uploads. A matching tag or a half-uploaded draft is not completion.
-    record = io.getRelease(record.id)
-    assert.equal(record.tag_name, release.gitTag)
-    assert.equal(record.prerelease, release.prerelease)
-    assert.equal(io.tagCommit(release.gitTag), target)
-    for (const filename of required) {
-        const assets = record.assets.filter((item) => item.name === filename)
-        assert.equal(assets.length, 1, `Missing/duplicate retained asset: ${filename}`)
-        assert.equal(assets[0].state, 'uploaded')
-        assert.deepEqual(io.readAsset(assets[0]), readFileSync(join(directory, filename)))
-    }
+    record = io.getRelease(identity.id)
     if (record.draft) {
+        verifyRecord(record)
         assert.ok(
             record.body?.startsWith('[Posted by Jarvis]\n\n'),
             'Draft attribution changed; preserve user edits and resolve before publication',
@@ -95,14 +82,10 @@ export function completeRecord(release, directory, io) {
             prerelease: release.prerelease,
             make_latest: release.prerelease || newerStable ? 'false' : 'true',
         })
-        record = io.getRelease(record.id)
-        assert.equal(
-            record.draft,
-            false,
-            'Release publication did not complete; retry original artifact',
-        )
-        assert.equal(record.prerelease, release.prerelease)
+        record = io.getRelease(identity.id)
     }
+    requirePublishedRecord(record)
+    verifyRecord(record)
     return record
 }
 

@@ -13,19 +13,25 @@ import {
 } from './artifact.mjs'
 import { stableFiles, verifyRecordFiles, verifyGeneratedFiles } from './record-data.mjs'
 import { repository, migrationBase, sourceRun, validateMainBase, api } from './release-source.mjs'
+import { requirePublishedRecord, verifyRecordIdentity, verifyRecordAssets } from './record-state.mjs'
 
-export function requirePublishedBaseline(record, version) {
+export function requirePublishedBaseline(record, version, target, id = record?.id) {
     assert.ok(
         record,
         'Prior new-scope tag lacks a completed release record; recover its original artifact before another pack',
     )
-    assert.equal(record.tag_name, `v${version}`)
     assert.equal(
         record.draft,
         false,
         'Prior release draft is incomplete; finish original-asset recovery before another pack',
     )
-    assert.equal(record.prerelease, version.includes('-next.'), 'Prior release channel differs')
+    verifyRecordIdentity(record, {
+        id,
+        tag_name: `v${version}`,
+        target_commitish: target,
+        prerelease: version.includes('-next.'),
+    })
+    requirePublishedRecord(record)
 }
 
 // Read-only gate: a tag pushed before interrupted asset uploads is not a completed baseline.
@@ -52,15 +58,9 @@ export function verifyPreviousRelease(lastTag) {
     )
     const record = matches[0]
     const version = lastTag.slice(1)
-    requirePublishedBaseline(record, version)
-    const read = (name) => {
-        const assets = record.assets.filter((asset) => asset.name === name)
-        assert.equal(
-            assets.length,
-            1,
-            `Prior release lacks original asset ${name}; recover before another pack`,
-        )
-        const asset = assets[0]
+    const target = git('rev-parse', `${lastTag}^{commit}`).trim()
+    requirePublishedBaseline(record, version, target)
+    const readAsset = (asset) => {
         assert.equal(asset.state, 'uploaded')
         assert.match(
             asset.digest,
@@ -80,6 +80,18 @@ export function verifyPreviousRelease(lastTag) {
         assert.equal(`sha256:${createHash('sha256').update(bytes).digest('hex')}`, asset.digest)
         return bytes
     }
+    const expectedAssets = new Map()
+    const read = (name) => {
+        const assets = record.assets.filter((asset) => asset.name === name)
+        assert.equal(
+            assets.length,
+            1,
+            `Prior release lacks original asset ${name}; recover before another pack`,
+        )
+        const bytes = readAsset(assets[0])
+        expectedAssets.set(name, bytes)
+        return bytes
+    }
     const directory = mkdtempSync(join(tmpdir(), 'interpolate-baseline-'))
     try {
         const metadata = read('release.json')
@@ -97,7 +109,6 @@ export function verifyPreviousRelease(lastTag) {
         for (const name of names) writeFileSync(join(directory, name), read(name))
         const retained = verify(directory, source.sha, version, source.ref)
         const files = verifyRecordFiles(directory, retained)
-        const target = git('rev-parse', `${lastTag}^{commit}`).trim()
         if (release.prerelease) assert.equal(target, source.sha)
         else {
             const parents = git('rev-list', '--parents', '-n', '1', lastTag).trim().split(' ')
@@ -131,6 +142,10 @@ export function verifyPreviousRelease(lastTag) {
                     retained,
                 ),
             )
+        // Completion is bound to the same record and original bytes after all reads.
+        const finalRecord = api(`releases/${record.id}`)
+        requirePublishedBaseline(finalRecord, version, target, record.id)
+        verifyRecordAssets(finalRecord, expectedAssets, readAsset)
     } finally {
         rmSync(directory, { recursive: true, force: true })
     }

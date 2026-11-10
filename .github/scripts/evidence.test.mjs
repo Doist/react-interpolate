@@ -115,26 +115,51 @@ test('REST visibility and whoami cannot turn a registry package404 into version 
 })
 
 test('an interrupted new-scope record cannot become the next semantic baseline', () => {
+    const record = {
+        id: 1,
+        tag_name: 'v2.2.5',
+        target_commitish: source.sha,
+        draft: false,
+        prerelease: false,
+        published_at: '2026-11-10T20:00:00Z',
+    }
     assert.throws(() => requirePublishedBaseline(null, '2.2.5'), /recover its original artifact/)
     assert.throws(
         () =>
             requirePublishedBaseline(
-                { tag_name: 'v2.2.5', draft: true, prerelease: false },
+                { ...record, draft: true },
                 '2.2.5',
+                source.sha,
             ),
         /finish original-asset recovery/,
     )
     assert.throws(
         () =>
             requirePublishedBaseline(
-                { tag_name: 'v2.3.0-next.1', draft: false, prerelease: false },
+                { ...record, tag_name: 'v2.3.0-next.1' },
                 '2.3.0-next.1',
+                source.sha,
             ),
         /channel differs/,
     )
-    requirePublishedBaseline({ tag_name: 'v2.2.5', draft: false, prerelease: false }, '2.2.5')
+    requirePublishedBaseline(record, '2.2.5', source.sha)
     requirePublishedBaseline(
-        { tag_name: 'v2.3.0-next.1', draft: false, prerelease: true },
+        { ...record, tag_name: 'v2.3.0-next.1', prerelease: true },
         '2.3.0-next.1',
+        source.sha,
     )
+    for (const published_at of [undefined, null, '', 'not-a-date', '2026-02-30T20:00:00Z'])
+        assert.throws(
+            () => requirePublishedBaseline({ ...record, published_at }, '2.2.5', source.sha),
+            /valid publication timestamp/,
+        )
+    for (const mutation of [
+        { id: 2 },
+        { tag_name: 'v2.2.6' },
+        { target_commitish: 'b'.repeat(40) },
+        { prerelease: true },
+    ])
+        assert.throws(() =>
+            requirePublishedBaseline({ ...record, ...mutation }, '2.2.5', source.sha, record.id),
+        )
 })

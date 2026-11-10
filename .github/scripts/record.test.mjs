@@ -13,6 +13,7 @@ import { publish } from './artifact.mjs'
 
 const sourceSha = 'a'.repeat(40)
 const targetSha = 'b'.repeat(40)
+const publishedAt = '2026-11-10T20:00:00Z'
 const success = (value) => ({ status: 0, stdout: JSON.stringify(value) })
 const missing = { status: 1, stdout: JSON.stringify({ error: { code: 'E404' } }) }
 
@@ -109,7 +110,8 @@ function remote(f, options = {}) {
         getRelease: () => state,
         publishDraft: (id, patch) => {
             calls.push({ publish: patch })
-            Object.assign(state, patch)
+            Object.assign(state, patch, { published_at: publishedAt })
+            options.afterPublish?.(state, blobs)
         },
     }
     return { io, calls, state: () => state }
@@ -306,6 +308,71 @@ test('wrong tag, conflicting assets, incomplete published records and changed ch
         assert.throws(() => completeRecord(f.release, f.directory, r.io), /never overwrite/)
     } finally {
         f.cleanup()
+    }
+})
+
+test('final published readback requires the same identity, valid timestamp and every original asset', () => {
+    const mutations = [
+        (state) => delete state.published_at,
+        (state) => (state.published_at = null),
+        (state) => (state.published_at = 'not-a-date'),
+        (state) => (state.published_at = '2026-02-30T20:00:00Z'),
+        (state) => (state.id = 2),
+        (state) => (state.tag_name = 'v9.9.9'),
+        (state) => (state.target_commitish = 'c'.repeat(40)),
+        (state) => (state.prerelease = !state.prerelease),
+        (state) => (state.draft = true),
+        (state) => (state.assets = []),
+        (state) => state.assets.pop(),
+        (state) => state.assets.push({ ...state.assets[0] }),
+        (state) => (state.assets[0].state = 'new'),
+        (state, blobs) => blobs.set(state.assets[0].id, Buffer.from('different artifact')),
+    ]
+    for (const prerelease of [false, true]) {
+        const f = fixture(prerelease)
+        try {
+            for (const [index, afterPublish] of mutations.entries()) {
+                const r = remote(f, { afterPublish })
+                assert.throws(
+                    () => completeRecord(f.release, f.directory, r.io),
+                    `post-publication mutation ${index} must not be accepted`,
+                )
+                assert.equal(r.calls.filter((call) => call.publish).length, 1)
+            }
+            const r = remote(f, {
+                afterPublish: () => (r.io.tagCommit = () => 'changed-after-publication'),
+            })
+            assert.throws(() => completeRecord(f.release, f.directory, r.io), /tag target changed/)
+        } finally {
+            f.cleanup()
+        }
+    }
+})
+
+test('draft validates all existing assets before uploading an earlier missing tarball', () => {
+    for (const damage of ['conflicting', 'duplicate', 'incomplete']) {
+        const f = fixture()
+        try {
+            const r = remote(f)
+            completeRecord(f.release, f.directory, r.io)
+            const state = r.state()
+            state.draft = true
+            state.published_at = null
+            state.assets = state.assets.filter((asset) => asset.name !== f.release.filename)
+            const metadata = state.assets.find((asset) => asset.name === 'release.json')
+            if (damage === 'duplicate') state.assets.push({ ...metadata })
+            else if (damage === 'incomplete') metadata.state = 'new'
+            else {
+                const read = r.io.readAsset
+                r.io.readAsset = (asset) =>
+                    asset.id === metadata.id ? Buffer.from('conflicting release.json') : read(asset)
+            }
+            const before = r.calls.length
+            assert.throws(() => completeRecord(f.release, f.directory, r.io))
+            assert.deepEqual(r.calls.slice(before), ['registry-gate', 'git-record'])
+        } finally {
+            f.cleanup()
+        }
     }
 })
 
