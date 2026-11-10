@@ -1,11 +1,11 @@
 # react-interpolate
 
-[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/Doist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip) [![Actions Status](https://github.com/Doist/react-interpolate/workflows/CI/badge.svg)](https://github.com/Doist/react-interpolate/actions)
+[![size](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/todoist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip)](http://img.badgesize.io/https://cdn.jsdelivr.net/gh/todoist/react-interpolate/dist/react-interpolate.min.cjs?compression=gzip) [![Actions Status](https://github.com/todoist/react-interpolate/workflows/CI/badge.svg)](https://github.com/todoist/react-interpolate/actions)
 
 A string interpolation component that formats and interpolates a template string in a safe way.
 
 ```jsx
-import Interpolate from '@doist/react-interpolate'
+import Interpolate from '@todoist/react-interpolate'
 
 function Greeting() {
     return (
@@ -183,7 +183,7 @@ hello {{name}}
 You can define the formatting syntax of your string via `syntax` props.
 
 ```jsx
-import Interpolate, { TOKEN_PLACEHOLDER } from "react-interpolate"
+import Interpolate, { TOKEN_PLACEHOLDER } from "@todoist/react-interpolate"
 
 const i18nNextSyntax = [
     {
@@ -205,7 +205,7 @@ const i18nNextSyntax = [
 react-interpolate comes with i18next syntax support, and you can enable it via
 
 ```jsx
-import { SYNTAX_I18NEXT } from "react-interpolate"
+import { SYNTAX_I18NEXT } from "@todoist/react-interpolate"
 
 <Interpolate
   syntax={SYNTAX_I18NEXT}
@@ -215,15 +215,8 @@ import { SYNTAX_I18NEXT } from "react-interpolate"
 
 # Releasing
 
-Releases are fully automated with [semantic-release](https://semantic-release.gitbook.io/). There is no manual version bump: the next version number, the changelog, the git tag, the GitHub release, and the npm/GitHub Package Registry publishes are all derived from the commit history.
+See [the release runbook](docs/releasing.md). Stable versions still follow semantic-release's Conventional Commit analysis and the existing `v${version}` tag lineage. `fix:` selects a patch, `feat:` a minor and breaking changes a major. The first intended new-scope release is `@todoist/react-interpolate@2.2.5`, subject to that analysis and fresh collision checks.
 
-Every push to `main` runs the `Release` workflow, which:
+Packing and publishing are now explicit, separate maintainer operations. Merging does not publish, tag or create a release. One retained tarball supplies npm and GitHub Packages, including terminal bootstrap and missing-mirror retries. A release record is created only after both registry copies match. Keep the original successful run and artifact; never rebuild an already-published version.
 
-1. analyses the [Conventional Commits](https://www.conventionalcommits.org/) since the last release to determine the next version (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` → major),
-2. updates `CHANGELOG.md`, `package.json`, and `package-lock.json` and commits them back,
-3. tags the release and publishes the GitHub release notes, and
-4. publishes the package to npm with provenance.
-
-Because the version is inferred from commits, **pull request titles and commits must follow the Conventional Commits format** — this is enforced by the `Semantic Pull Request` check. If a batch of commits contains no releasable changes (e.g. only `chore:`/`docs:`/`ci:`), no release is published.
-
-Pushes to the `next` branch publish a prerelease on the `next` dist-tag without updating the changelog.
+The migration path covers stable `main` releases. The previous automatic `next` prerelease publisher is held during cutover; its semantic analysis configuration is retained, but prerelease activation needs a reviewed equivalent retained-artifact path before resuming.

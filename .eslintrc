@@ -4,7 +4,7 @@
         "eslint:recommended",
         "plugin:prettier/recommended",
         "plugin:import/recommended",
-        "@doist/eslint-config/react"
+        "@todoist/eslint-config/eslintrc/react"
     ],
     "env": {
         "browser": true,
@@ -18,5 +18,8 @@
         "sourceType": "module"
     },
     "parser": "@babel/eslint-parser",
-    "settings": { "react": { "version": "detect" } }
+    "settings": { "react": { "version": "detect" } },
+    "rules": {
+        "no-restricted-imports": "off"
+    }
 }

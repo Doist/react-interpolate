@@ -1,0 +1,53 @@
+name: Pack reviewed react-interpolate (no publication)
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: Reviewed semantic-release result (first migration release 2.2.5)
+                required: true
+                type: string
+
+# semantic-release dry-run checks push permission, but does not create tags/commits/releases.
+permissions:
+    contents: write
+    packages: read
+
+concurrency:
+    group: react-interpolate-pack
+    cancel-in-progress: false
+
+jobs:
+    pack:
+        if: github.repository == 'todoist/react-interpolate' && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.sha }}
+                  fetch-depth: 0
+                  persist-credentials: false
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: '24.20.0'
+                  cache: npm
+            - run: npm install --global npm@11.21.2 --ignore-scripts
+            - run: npm ci --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+            - run: npm run lint
+            - run: npm test -- --runInBand
+            - run: npm run test:release
+            - name: Calculate version, build and pack once without publishing
+              env:
+                  RELEASE_DIR: ${{ runner.temp }}/react-interpolate-release
+                  EXPECTED_VERSION: ${{ inputs.version }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: node .github/scripts/pack-release.mjs "$RELEASE_DIR" "$EXPECTED_VERSION"
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: react-interpolate-${{ inputs.version }}-${{ github.run_id }}-${{ github.run_attempt }}
+                  path: ${{ runner.temp }}/react-interpolate-release/
+                  if-no-files-found: error
+                  retention-days: 90

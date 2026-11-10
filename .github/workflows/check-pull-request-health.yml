@@ -25,17 +25,28 @@ jobs:
                   node-version: ${{ matrix.node-version }}
 
             - name: Install dependencies
-              run: npm ci --legacy-peer-deps
+              run: npm ci --ignore-scripts --legacy-peer-deps --no-audit --no-fund
 
+            # The current-forward lint config needs Node >=24.10; runtime checks stay on all supported majors.
             - name: Lint the codebase
+              if: matrix.node-version == '24.x'
               run: npm run lint
               env:
                   CI: true
 
             - name: Test the codebase
-              run: npm run test
+              run: npm run test -- --runInBand
               env:
                   CI: true
 
             - name: Build the codebase
               run: npm run build
+
+    release-safety:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: '24.20.0'
+            - run: node --test .github/scripts/*.test.mjs
