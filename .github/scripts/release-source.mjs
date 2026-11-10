@@ -3,26 +3,51 @@ import { execFileSync } from 'node:child_process'
 
 export const repository = 'todoist/react-interpolate'
 export const workflowPath = '.github/workflows/pack.yml'
+export const migrationBase = '390477162083a72654cd8c4621096a49d4dfd626'
 export const api = (path) =>
-    JSON.parse(execFileSync('gh', ['api', `repos/${repository}/${path}`], { encoding: 'utf8' }))
+    JSON.parse(
+        execFileSync('gh', ['api', `repos/${repository}/${path}`], {
+            encoding: 'utf8',
+            maxBuffer: 32 * 1024 * 1024,
+        }),
+    )
+const ancestor = (compare, base, head) =>
+    ['ahead', 'identical'].includes(compare(base, head).status)
 
 export function validateSourceRun(run, workflowId, compare) {
     assert.equal(run.repository.full_name.toLowerCase(), repository)
     assert.equal(run.head_repository.full_name.toLowerCase(), repository)
     assert.equal(run.workflow_id, workflowId)
     assert.equal(run.path, workflowPath)
-    assert.equal(run.event, 'workflow_dispatch')
+    assert.ok(['workflow_dispatch', 'push'].includes(run.event))
     assert.equal(run.status, 'completed')
     assert.equal(run.conclusion, 'success')
-    assert.equal(run.head_branch, 'main')
+    assert.ok(['main', 'next'].includes(run.head_branch))
     assert.match(run.head_sha, /^[a-f0-9]{40}$/)
     assert.ok(
-        ['ahead', 'identical'].includes(compare(run.head_sha, 'main').status),
-        'Source must be in reviewed main history',
+        ancestor(compare, run.head_sha, 'main') ||
+            (run.head_branch === 'next' && ancestor(compare, run.head_sha, 'next')),
+        'Source must remain in reviewed main/next history',
     )
-    // Historical run identity and main ancestry establish trust. Workflow maintenance
-    // on current main must not invalidate an original artifact (schema checked separately).
-    return { sha: run.head_sha, ref: 'refs/heads/main' }
+    assert.ok(
+        ancestor(compare, migrationBase, run.head_sha),
+        'Historical pre-migration source is not publishable',
+    )
+    return { sha: run.head_sha, ref: `refs/heads/${run.head_branch}` }
+}
+
+export function validateMainBase(release, compare) {
+    if (release.schema === 1) return // Original schema-1 stable runs already require main ancestry.
+    assert.match(release.mainBase, /^[a-f0-9]{40}$/)
+    assert.ok(
+        ancestor(compare, migrationBase, release.mainBase),
+        'Main base predates the forward migration line',
+    )
+    assert.ok(ancestor(compare, release.mainBase, 'main'), 'Retained base is not on reviewed main')
+    assert.ok(
+        ancestor(compare, release.mainBase, release.sourceSha),
+        'Source is unrelated to its retained main base',
+    )
 }
 
 export function sourceRun(runId, attempt) {
@@ -34,7 +59,7 @@ export function sourceRun(runId, attempt) {
     const source = validateSourceRun(run, api('actions/workflows/pack.yml').id, (base, head) =>
         api(`compare/${base}...${head}`),
     )
-    // Fetch the historical workflow itself, without comparing it to today's bytes.
+    // Trust historical identity and ancestry, never byte equality with today's workflow.
     const historical = api(`contents/${workflowPath}?ref=${source.sha}`)
     assert.equal(historical.path, workflowPath)
     assert.ok(historical.sha, 'Historical workflow must remain accessible')
@@ -43,15 +68,20 @@ export function sourceRun(runId, attempt) {
 
 export function checkPackSource() {
     assert.equal(process.env.GITHUB_REPOSITORY?.toLowerCase(), repository)
-    assert.equal(process.env.GITHUB_EVENT_NAME, 'workflow_dispatch')
-    assert.equal(process.env.GITHUB_REF, 'refs/heads/main')
+    assert.ok(['workflow_dispatch', 'push'].includes(process.env.GITHUB_EVENT_NAME))
+    assert.ok(['refs/heads/main', 'refs/heads/next'].includes(process.env.GITHUB_REF))
     const sha = process.env.GITHUB_SHA
     assert.match(sha, /^[a-f0-9]{40}$/)
-    assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), sha)
+    const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()
+    assert.equal(git('rev-parse', 'HEAD'), sha)
+    const branch = process.env.GITHUB_REF.slice('refs/heads/'.length)
     assert.equal(
-        api('commits/main').sha,
+        api(`commits/${branch}`).sha,
         sha,
-        'Pack only the current reviewed main; recover older releases from their original artifact',
+        'Pack only current release-branch source; recover older releases from their original artifact',
     )
-    return sha
+    const mainBase = git('merge-base', 'origin/main', sha)
+    const release = { schema: 2, mainBase, sourceSha: sha }
+    validateMainBase(release, (base, head) => api(`compare/${base}...${head}`))
+    return { sha, ref: process.env.GITHUB_REF, mainBase }
 }

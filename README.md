@@ -215,8 +215,8 @@ import { SYNTAX_I18NEXT } from "@todoist/react-interpolate"
 
 # Releasing
 
-See [the release runbook](docs/releasing.md). Stable versions still follow semantic-release's Conventional Commit analysis and the existing `v${version}` tag lineage. `fix:` selects a patch, `feat:` a minor and breaking changes a major. The first intended new-scope release is `@todoist/react-interpolate@2.2.5`, subject to that analysis and fresh collision checks.
+See [the release runbook](docs/releasing.md). Versions still follow semantic-release's Conventional Commits and the existing `v${version}` tag lineage: `fix:` selects a patch, `feat:` a minor and breaking changes a major. The first intended new-scope stable release is `@todoist/react-interpolate@2.2.5`, subject to actual history and collision checks.
 
-Packing and publishing are now explicit, separate maintainer operations. Merging does not publish, tag or create a release. One retained tarball supplies npm and GitHub Packages, including terminal bootstrap and missing-mirror retries. A release record is created only after both registry copies match. Keep the original successful run and artifact; never rebuild an already-published version.
+Pushes to `main` and `next` calculate the normal stable or `next.N` version and prepare a retained artifact without publishing. Authorized publication is an explicit protected operation: npm and GitHub Packages receive the same tarball, including bootstrap and missing-mirror retries. After both registry copies match, the release record commits the generated version/changelog back to `main`, creates the normal version tag and semantic-release channel note, and completes the GitHub release. `next` keeps its prerelease channel and skips source commitback; it never promotes `latest`.
 
-The migration path covers stable `main` releases. The previous automatic `next` prerelease publisher is held during cutover; its semantic analysis configuration is retained, but prerelease activation needs a reviewed equivalent retained-artifact path before resuming.
+Keep the original successful run and artifact. Publication/record retries do not recalculate the version or rebuild the package, including after later workflow maintenance.

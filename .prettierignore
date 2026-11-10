@@ -1,4 +1,4 @@
 dist/**
 
-# Preserve the historical changelog formatting
+# semantic-release manages this file's formatting
 CHANGELOG.md

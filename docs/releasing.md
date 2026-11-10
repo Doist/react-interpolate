@@ -1,22 +1,31 @@
 # Releasing @todoist/react-interpolate
 
-Preparation status: **WAITING_FOR_PUBLICATION**, with an additional **RELEASE_POLICY_REVIEW** merge gate. This branch deliberately retains the original lockfile until the new tooling exists. It must not merge with that stale lock. No migration artifact has been built or published. Runtime source, default/named exports, distribution filenames, React >=17.0.2 peers and package Node/npm engines are unchanged.
+Preparation status: **WAITING_FOR_PUBLICATION**. The original lockfile remains intentionally unchanged until the new tooling exists. Do not merge with that stale lock. No release artifact or registry publication has been produced during preparation. Runtime source, exports, React peers and package engines are unchanged.
 
-## Version and release policy
+## Existing release policy, with a controlled publication boundary
 
-**Unresolved fresh-review finding (P2):** this draft proposes permanent manual stable-only release operations and removes automatic version/changelog commitback. The first-release hold is required, but those steady-state policy changes are not implied by package migration. Before merge, the maintainer must either explicitly accept these changes or have normal automatic `main`/`next` release modes and generated records restored across the retained-artifact boundary. This is an unresolved source/policy gate, separate from external publication and authentication prerequisites. Do not treat this draft as merge-ready.
+`main` and `next` pushes run `.github/workflows/pack.yml`. It uses the existing semantic-release 25 Conventional Commit analyzer/notes generator, branches `main` and `{ name: 'next', prerelease: true }`, and `v${version}` tags. `fix`/`feat`/breaking changes retain patch/minor/major behavior; non-releasable batches produce no artifact. `next` retains `next.N` versions and the `next` channel. Existing old-scope tags are analysis history only; the unchanged tag format does not reset the baseline.
 
-The original source and npm latest are 2.2.4. Existing tags are `v<version>`, independent of scope, so there is no scoped-tag baseline reset. The intended first release is 2.2.5. Land the migration with a `fix:` Conventional Commit; intervening features/breaking changes require reconciling the target. `pack-release.mjs` asks semantic-release 25 (the existing Conventional Commits analyzer and notes generator) for a **dry-run** result and requires it to match the reviewed input. No release is fabricated for a non-releasable commit batch.
+The intended first new-scope stable release is **2.2.5**, from source/npm latest2.2.4. A manual pack can assert `version=2.2.5`; actual analysis must match. Push-triggered packing uses the calculated version. Intervening features/breaking changes require reconciling the target.
 
-The old push-triggered publisher is replaced by explicit pack/publish operations. A merge or branch push no longer publishes, tags, edits the changelog, or creates a GitHub release. The source manifest remains the existing 2.2.4 baseline; packing updates the version only in its ephemeral checkout. Published versions and the next calculation follow the normal `v<version>` records. After both registries match, `record` creates that tag at the **original build commit** and attributed GitHub release notes, preserving existing records. It does not commit generated version/changelog changes back to protected main. GitHub's release `latest` flag is left unchanged to avoid an older recovery changing it.
+Packing only prepares the artifact and generated release files. For stable releases it runs the existing `@semantic-release/changelog` preparation and updates package.json/package-lock.json in the ephemeral checkout; for prereleases it updates the ephemeral package version without changelog or source commitback. Publication, tags, Git notes, commitback and GitHub release creation remain behind explicit maintainer dispatch of `.github/workflows/publish.yml` and its protected `package-release` environment. New npm trust is never assumed at merge time.
 
-This migration enables stable `main` only. Automatic `next` publication is held: the old `next` semantic analysis configuration remains, but restoring prerelease publication requires an independently reviewed retained-artifact path and its branch/channel trust policy. Do not run the old publisher to bypass this hold.
+After **both exact-version registry copies match** the retained tarball, `record_release=true` restores the normal records:
 
-## Finish the actual dependency gate before merge
+- Stable: commit only the retained `CHANGELOG.md`, `package.json`, and `package-lock.json`, with the normal `chore(release): <version> [skip ci]` message and notes; tag that generated commit.
+- Prerelease: tag the original `next` source commit; no version/changelog commitback to `next`.
+- Both: write the existing semantic-release per-version Git note, `{"channels":[null]}` for stable or `{"channels":["next"]}` for next. These notes are required for normal subsequent prerelease calculation. Tags remain `v<version>`.
+- Complete attributed GitHub release notes and required retained assets. Prereleases remain prereleases and never become GitHub latest; older stable recovery also cannot replace a newer GitHub latest. Existing user-edited release bodies are preserved.
 
-Required public tooling: `@todoist/prettier-config@4.0.2`, `@todoist/eslint-config@13.1.2`, and its transitive `@todoist/eslint-plugin-doist@2.0.2`. All must exist in npm and GitHub Packages. Config 13 exposes `/eslintrc/react` and needs Node >=24.10 for development; formatter 4 uses Prettier 3. The necessary lint peers are updated; the default React import restriction is disabled to retain this library's existing React usage. Package consumers keep the existing Node/React support.
+The source version/changelog record is generated from the original build source, never recalculated at retry time. A later main change is preserved by a three-way merge of the generated metadata commit, followed by a non-forced atomic push of the required branch/tag/note refs. A real metadata conflict or branch-protection failure stops before push and requires original-byte/manual record recovery; it never asks for a rebuild. Already-completed records are verified and skipped. No historical tag is moved, deleted or recreated.
 
-On Node 24.20.0 with npm 11.21.2, after real publication:
+The initial draft's stable-only/manual release-policy retirement is removed. Steady-state `main`/`next` calculation, stable generated commitback, normal tags/channel notes and prerelease semantics are restored; only the actual publication/record boundary remains explicitly gated as required for migration.
+
+## Finish the real dependency gate before merge
+
+Required public tooling in both registries: `@todoist/prettier-config@4.0.2`, `@todoist/eslint-config@13.1.2` and transitive `@todoist/eslint-plugin-doist@2.0.2`. Config13 uses `/eslintrc/react` and Node>=24.10 for development; formatter4 uses Prettier3. Updated lint peers preserve this library's existing React usage. Consumer Node/React engines remain unchanged.
+
+After actual publication, use Node24.20.0/npm11.21.2:
 
 ```sh
 npm install --package-lock-only --ignore-scripts --legacy-peer-deps --no-audit --no-fund
@@ -25,62 +34,80 @@ npm run lint
 npm test -- --runInBand
 npm run build
 npm run test:release
+node .github/scripts/semantic-policy-check.mjs
 ```
 
-Review actual resolutions/integrities and peer warnings; commit the regenerated lock. Existing legacy-peer resolution is retained for this older Rollup/Babel graph. Run PR health on all supported Node majors (20/22/24/26); lint uses 24 because the development config has a newer floor. No aliases, local tarball paths, invented integrity values or rewritten old-scope URLs are a production solution.
+Review real resolutions/integrities and peer warnings, commit the resulting lock, and run PR health across Node20/22/24/26. The original lint/test/build matrix is retained on all four majors; tooling engine/compatibility warnings must be resolved or explicitly evidenced with the real installed graph. Node24.20 is the supported developer/release tooling runtime. The older Rollup/Babel graph retains its existing legacy-peer install policy. No production aliases, local tarball dependencies or fabricated lock integrity are allowed.
 
-## Setup owners and exact identities
+## Setup and exact identities
 
-Henning routes these steps to the already assigned npm/GitHub package administrators; their assignment source is not in this repository.
+Henning routes these steps to the existing assigned npm/GitHub administrators; their D06 assignment source is not in this repository.
 
-- Both current npm and GitHub package visibility are independently **public**. Preserve both. GitHub's current mirror is linked to `Doist/react-interpolate`; inspect its transfer and new-scope collision state after rename. The helper requires that existing transferred mirror to be readable and public. A missing direct package response is ambiguous (it can hide unauthorized packages) and blocks even npm bootstrap until the administrator verifies transfer/access. A successful upload alone does not satisfy this gate.
-- Repository: `todoist/react-interpolate`. Workflows/callers: `.github/workflows/pack.yml` and `.github/workflows/publish.yml` (direct, no reusable caller). Publisher environment: `package-release`; GitHub-hosted `ubuntu-latest`; Node 24.20.0; npm 11.21.2.
-- Protect `package-release` with the existing release approvers and only `main`. Review [environment settings](https://github.com/todoist/react-interpolate/settings/environments), [Actions permissions](https://github.com/todoist/react-interpolate/settings/actions), and [rulesets](https://github.com/todoist/react-interpolate/settings/rules). Normal release tag creation must be allowed through existing policy; do not bypass protections. The pack token needs contents write only because semantic-release dry-run validates push permission; pack code does not write to GitHub.
-- The publisher's workflow token needs contents write for the optional release record, actions read, packages write and id-token write. It also needs read access to the existing mirror. Cross-repository consumers need explicit package Read grants.
-- Inspect [GitHub package settings](https://github.com/orgs/todoist/packages/npm/react-interpolate/settings), repository linkage, public visibility, inheritance and Manage Actions access. Also verify local authenticated installation independently.
-- First npm publication must be interactive using the real artifact. Only **after the package exists**, configure [npm package Settings → Trusted publishing](https://www.npmjs.com/package/@todoist/react-interpolate/access): GitHub owner `todoist`, repo `react-interpolate`, workflow filename `publish.yml`, environment `package-release`; enable direct npm publish. Configure close to the next real release; a new unused connection expires. [npm requirements](https://docs.npmjs.com/trusted-publishers/).
-- `GH_TOKEN` is for GitHub API/artifact access. `GH_PACKAGES_TOKEN` is separately supplied for GitHub registry reads/writes (local classic PAT with read:packages; write:packages only for a local mirror write; Actions uses its repository token). No GitHub credential or inherited npm token is passed to the isolated npmjs process. Bootstrap login and publish both inherit terminal IO for 2FA. No global npmrc changes.
-- Cross-run npm provenance is disabled explicitly: the publisher checkout can differ from the build. Claiming the publisher's SHA as the build would be inaccurate. [GitHub authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry).
+- Both current npm and GitHub mirror visibility are independently **public**. The existing GitHub package must transfer to `todoist` and remain directly readable, public, and linked to `todoist/react-interpolate` before **any** registry write. `whoami` or filtered package inventories cannot prove absence. Missing/unauthorized direct package reads stop for access/transfer verification, including before npm bootstrap. The GitHub npm registry must also return a valid package dist-tags document before an exact-version404 may mean absence; REST visibility and whoami alone are insufficient.
+- Workflows/callers: direct `.github/workflows/pack.yml` and `.github/workflows/publish.yml`; no reusable caller. Publisher dispatch runs from `main`, even when processing a retained `next` artifact. Environment `package-release`, GitHub-hosted `ubuntu-latest`, Node24.20.0, npm11.21.2. Both workflows share `react-interpolate-release` concurrency; no cancellation mid-release.
+- Protect [package-release](https://github.com/todoist/react-interpolate/settings/environments) with existing approvers and the `main` publisher ref. Review [Actions permissions](https://github.com/todoist/react-interpolate/settings/actions) and [rulesets](https://github.com/todoist/react-interpolate/settings/rules). Pack has contents:write solely for semantic-release dry-run's push-permission check and packages:read. It makes no GitHub record or registry write.
+- Publisher token: contents:write, actions:read, packages:write and id-token:write. The existing `DOIST_RELEASE_BOT_ID` / `DOIST_RELEASE_BOT_PRIVATE_KEY` app is used **only when recording** for its normal commitback/tag/release rights and bot attribution. Existing branch/signature policy and app access must allow the original release mechanism; never bypass protections ad hoc. No secret identity is renamed.
+- `GH_TOKEN` reads source runs/artifacts. `GH_PACKAGES_TOKEN` authenticates GitHub registry preflight/writes (local classic PAT: read:packages; write:packages only for local mirror writes). `GH_RECORD_TOKEN` is the existing release app token for Git/record writes. None is passed to isolated npmjs subprocesses. No global npmrc changes.
+- Inspect [GitHub package settings](https://github.com/orgs/todoist/packages/npm/react-interpolate/settings), repository linkage/public visibility/inheritance and required Manage Actions access grants. Verify real local and cross-repo consumer installation separately.
+- First npm publication is interactive, from the original artifact. Only after the package exists, configure [npm Settings → Trusted publishing](https://www.npmjs.com/package/@todoist/react-interpolate/access): owner `todoist`, repo `react-interpolate`, workflow filename `publish.yml`, environment `package-release`, direct npm publish enabled. Configure near the next real release; no extra release to test trust. [npm requirements](https://docs.npmjs.com/trusted-publishers/).
+- Cross-run npm provenance is explicitly disabled: the publisher checkout may differ from the original build. Login and actual npm publish both inherit terminal IO for 2FA. [GitHub authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry).
 
-## Future operator commands — do not run during preparation
+## Future operator commands — not executed during preparation
 
-First complete rename, actual tooling publication, lock/install verification and review/merge. The following commands are **real** operations for the separately authorized cutover.
+Complete rename/transfer/access, actual tooling publication, real lock verification and review/merge first. Merging to main prepares an artifact; it does **not** publish or record a release. Propagate the migration through the normal forward main/next flow before preparing next artifacts; source must descend from the recorded current-forward base3904771.
 
-1. From current reviewed main, produce one artifact (no publication/tag/release):
+For an explicit first pack (or when no suitable push run exists):
 
 ```sh
 gh workflow run pack.yml --repo todoist/react-interpolate --ref main -f version=2.2.5
 ```
 
-Record the successful run ID and attempt from Actions. Artifact name is `react-interpolate-2.2.5-RUN_ID-ATTEMPT`; files are `todoist-react-interpolate-2.2.5.tgz`, schema-1 `release.json` (SHA-512 integrity, SHA-1, original source SHA/ref, run/attempt, version and notes), and `release-notes.md`. Retention is 90 days; archive those exact files/checksums securely. Never rerun pack for a partially published version. The pack command refuses a same-version copy already in either registry.
+Record the successful RUN_ID/ATTEMPT and calculated version. Artifact `react-interpolate-2.2.5-RUN_ID-ATTEMPT` contains `todoist-react-interpolate-2.2.5.tgz`, schema2 release.json, release-notes.md, and stable-only `record-CHANGELOG.md`, `record-package.json`, `record-package-lock.json`. Metadata binds original source SHA/ref/main base/run/attempt/channel, tarball integrity and generated-file hashes. Retain all exact bytes/checksums securely beyond Actions'90-day retention. Do not rerun pack after either registry accepted that version.
 
-2. With `GH_TOKEN` and `GH_PACKAGES_TOKEN` supplied through the established secret flow, in an interactive terminal and a reviewed checkout containing the helper:
+With GH_TOKEN and GH_PACKAGES_TOKEN provided through the established secret flow, in a terminal:
 
 ```sh
 node .github/scripts/release.mjs verify RUN_ID ATTEMPT 2.2.5
 node .github/scripts/release.mjs bootstrap RUN_ID ATTEMPT 2.2.5 npm latest
 ```
 
-Replace RUN_ID/ATTEMPT with the recorded numbers. Both commands fetch the exact original run artifact themselves. The helper validates the run's repository, workflow ID/path, event, branch, success, attempt and main ancestry; checkout SHA must equal event SHA. It verifies schema, manifest/exports/peers and tarball digests. Publication rechecks both registry copies immediately before the write, including after login. Mismatch, authentication failure or transport ambiguity stops. The effective publish is `npm publish ORIGINAL.tgz --ignore-scripts --tag=latest --registry=https://registry.npmjs.org/ --access=public --provenance=false` from isolated scope/user/global config, with terminal IO.
+The helper fetches the exact original run artifact itself. It validates successful correct repo/head repo/workflowID/path/event/branch/run attempt, checkout=eventSHA, retained main base and main/next history, supported schema, packed manifest/exports/peers and checksums. The exact artifact ID/run/head/ref and API archive SHA-256 are checked before safe ZIP extraction; each local entry is bound to those original bytes. Later failed/skipped run attempts do not invalidate the original successful attempts/N evidence. Both registry copies are checked again immediately before the write, including after interactive login. The effective npm write uses the retained tarball, `--ignore-scripts`, explicit registry/scope config, public access and `--provenance=false`. There is no rebuild or second semantic version calculation.
 
-3. Publish the missing GitHub mirror from the same run (no version calculation or build):
+Publish the missing GitHub mirror, then perform normal commitback/records only after both copies match:
 
 ```sh
 gh workflow run publish.yml --repo todoist/react-interpolate --ref main \
   -f source_run_id=RUN_ID -f source_attempt=ATTEMPT -f version=2.2.5 \
-  -f destination=github -f dist_tag=latest -f record_release=false
+  -f destination=github -f dist_tag=channel -f record_release=true
 ```
 
-Verify GitHub visibility is public and the two tarball integrities match. If the transferred mirror is missing, unreadable or private, its administrator resolves transfer/access/public visibility before any registry write. Verify actual installs in npm and authenticated GitHub consumer environments. Then establish the normal next-version baseline, using the original run:
+If separating mirror verification and records, first use `record_release=false`, verify actual public/authenticated consumer installs, then repeat the same original run with `destination=both` and `record_release=true`. Matching registry copies are skipped. The workflow supplies the existing release bot identity for commitback; terminal bootstrap does not need or use that writer token.
+
+Normal future stable/prerelease preparation is automatic on releasable main/next pushes. Explicit dispatch is also available:
 
 ```sh
-node .github/scripts/release.mjs record RUN_ID ATTEMPT 2.2.5
+gh workflow run pack.yml --repo todoist/react-interpolate --ref next -f version=2.3.0-next.1
+gh workflow run publish.yml --repo todoist/react-interpolate --ref main \
+  -f source_run_id=NEXT_RUN_ID -f source_attempt=ATTEMPT -f version=2.3.0-next.1 \
+  -f destination=both -f dist_tag=channel -f record_release=true
 ```
 
-The record uses `v2.2.5` at the original source SHA, with `[Posted by Jarvis]` notes and retained tarball/metadata attached. It never moves an existing tag or edits user-owned release descriptions. Following releases calculate from this tag; a later `fix:` selects 2.2.6, `feat:` 2.3.0, and a breaking change 3.0.0. Record before authorizing the next pack.
+The prerelease number above is an example: use the actual calculated/approved version, never reserve it. `dist_tag=channel` derives latest/next from validated version/source metadata. A prerelease cannot use latest, even via the local CLI. A subsequent fix after a correctly recorded next.1 calculates next.2; a normal stable promotion calculates a new stable version/artifact from main, never retags the prerelease tarball as latest.
 
-4. Future OIDC releases use the same pack workflow, then `publish.yml` with `destination=both` and `record_release=true`. For partial failure retry only the missing destination with the **original** run/attempt/version. Publication does not need npm install or semantic-release.
+For a missing older mirror, select the actual missing destination and the original run/version:
 
-If a missing older copy would move `latest` backwards, retry with `dist_tag=recovery` (or terminal bootstrap's final argument `recovery`). Do not promote it to `latest`. The npm/GitHub package administrator owns cleanup of that temporary recovery tag after verification; any future tag-mutation tooling must perform the same two-registry integrity checks before each write. This helper deliberately performs no dist-tag-only writes.
+```sh
+gh workflow run publish.yml --repo todoist/react-interpolate --ref main \
+  -f source_run_id=ORIGINAL_RUN_ID -f source_attempt=ORIGINAL_ATTEMPT -f version=ORIGINAL_VERSION \
+  -f destination=github -f dist_tag=recovery -f record_release=true
+```
 
-Later reviewed workflow/script maintenance does not invalidate the original artifact: trust uses historical workflow/run identity, supported schema and reviewed main ancestry, not equality with today's workflow bytes. An expired/unavailable artifact or unsupported schema stops with **original-artifact/manual recovery**: retrieve the securely archived exact files or already-attached release assets, have the release owner validate the historical run and schema, and extend/review the recovery reader if needed. Never repack an immutable version.
+The latest **and next** channels each have downgrade guards. Recovery uses only the temporary recovery tag and never promotes either channel. Administrators own eventual recovery-tag cleanup with the same two-registry prewrite integrity checks; this helper does no standalone dist-tag mutations.
+
+## Durable publication and release-record retries
+
+Historical workflow/run identity and supported metadata establish trust; current workflow bytes need not equal the old workflow. Schema1 stable artifacts remain publishable by the original run after maintenance; they lack prepared commitback payloads, so recording them stops with original-byte/manual record guidance. Schema2 supports normal retained stable and next records.
+
+C07: a matching tag alone is not completion. Before producing another artifact, a new-scope last-release tag must have a completed published record, validated original assets/source/tag/generated files/channel note, and both completed matching registries. A half-uploaded draft cannot advance the semantic baseline. Old-scope tags reachable from the original base remain analysis history without attempting historical mirror repairs. Validate exact tag target, semantic channel note, draft/published/prerelease state and every required original release asset. A matching interrupted draft resumes only missing uploads, verifies all asset bytes, then publishes. Conflicting/upload-incomplete assets or a published release missing assets stop with precise original-byte recovery; never overwrite assets or delete/recreate a historical release. Existing descriptions remain untouched.
+
+If source metadata now conflicts, branch permissions reject the atomic push, an artifact expires, or schema support is missing, retain/retrieve the securely archived original bytes (or verified completed release assets) and resolve that specific record/access/reader issue. Original schema2 files are attached to the completed release. Do not repack an immutable already-published version, rerun semantic-release to bump again, or change the source/tag to hide a partial failure.

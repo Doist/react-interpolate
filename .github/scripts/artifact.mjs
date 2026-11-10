@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { verifyRecordFiles } from './record-data.mjs'
+import { parseVersion, channelFor, validateChannel, assertNoDowngrade } from './release-policy.mjs'
 
 const packageName = '@todoist/react-interpolate'
 const repository = 'https://github.com/todoist/react-interpolate'
@@ -12,7 +14,7 @@ const json = (path) => JSON.parse(readFileSync(path, 'utf8'))
 const hash = (bytes, algorithm, encoding) => createHash(algorithm).update(bytes).digest(encoding)
 
 function validatePackage(pkg, version) {
-    assert.match(version, /^\d+\.\d+\.\d+$/, 'Only stable semver releases are supported')
+    parseVersion(version)
     assert.equal(pkg.name, packageName)
     assert.equal(pkg.version, version)
     assert.equal(pkg.repository, repository)
@@ -43,19 +45,22 @@ function validatePackage(pkg, version) {
 }
 
 export function verify(directory, sourceSha, version, sourceRef) {
-    assert.match(version, /^\d+\.\d+\.\d+$/, 'Only stable semver releases are supported')
+    parseVersion(version)
     assert.match(sourceSha, /^[a-f0-9]{40}$/)
     const release = json(join(directory, 'release.json'))
-    assert.equal(
-        release.schema,
-        1,
+    assert.ok(
+        [1, 2].includes(release.schema),
         'Unsupported schema: keep the original artifact for reviewed manual recovery; never repack an immutable version',
     )
     assert.equal(release.name, packageName)
     assert.equal(release.version, version)
     assert.equal(release.sourceSha, sourceSha)
     if (sourceRef) assert.equal(release.sourceRef, sourceRef)
-    assert.ok(['refs/heads/main'].includes(release.sourceRef))
+    validateChannel(version, release.sourceRef)
+    if (release.schema === 2) {
+        assert.equal(release.channel, channelFor(version))
+        assert.equal(release.prerelease, release.channel === 'next')
+    }
     assert.equal(release.filename, `todoist-react-interpolate-${version}.tgz`)
     const tarball = resolve(directory, release.filename)
     const bytes = readFileSync(tarball)
@@ -86,6 +91,10 @@ export function verify(directory, sourceSha, version, sourceRef) {
         execFileSync('tar', ['-xOzf', tarball, 'package/package.json'], { encoding: 'utf8' }),
     )
     validatePackage(pkg, version)
+    if (release.schema === 2) {
+        const records = verifyRecordFiles(directory, release)
+        if (release.channel === 'latest') assert.deepEqual(JSON.parse(records['package.json']), pkg)
+    }
     return { ...release, tarball }
 }
 
@@ -93,7 +102,7 @@ export function pack(directory, sourceSha, sourceRef) {
     const pkg = json('package.json')
     validatePackage(pkg, pkg.version)
     assert.match(sourceSha, /^[a-f0-9]{40}$/)
-    assert.equal(sourceRef, 'refs/heads/main', 'Stable artifacts must come from main')
+    validateChannel(pkg.version, sourceRef)
     const lock = json('package-lock.json')
     for (const entry of [lock, lock.packages['']]) {
         assert.equal(entry.name, pkg.name)
@@ -145,7 +154,7 @@ export function withRegistry(destination, callback) {
     const env = Object.fromEntries(
         Object.entries(process.env).filter(
             ([key]) =>
-                !/^(npm_config_|npm_token$|node_auth_token$|gh_token$|github_token$|gh_packages_token$)/i.test(
+                !/^(npm_config_|npm_token$|node_auth_token$|gh_token$|github_token$|gh_packages_token$|gh_record_token$)/i.test(
                     key,
                 ),
         ),
@@ -242,12 +251,23 @@ export function githubVisibility() {
     return validateGithubMirror(pkg)
 }
 
+export function requireGithubRegistryMetadata(run, registry, name = packageName) {
+    const auth = run(['whoami', `--registry=${registry}`])
+    assert.equal(auth.status, 0, 'GitHub registry authentication failed; absence is ambiguous')
+    const tags = registryMetadata(run, registry, name, 'dist-tags')
+    assert.ok(
+        tags &&
+            typeof tags === 'object' &&
+            !Array.isArray(tags) &&
+            Object.values(tags).every((value) => typeof value === 'string'),
+        'Known GitHub registry package metadata is not readable; version404 is ambiguous',
+    )
+    return tags
+}
+
 export function preflightRegistries(release) {
     githubVisibility()
-    withRegistry('github', (run, registry) => {
-        const auth = run(['whoami', `--registry=${registry}`])
-        assert.equal(auth.status, 0, 'GitHub registry authentication failed; absence is ambiguous')
-    })
+    withRegistry('github', (run, registry) => requireGithubRegistryMetadata(run, registry))
     preflight(release, (destination) =>
         withRegistry(destination, (run, registry) =>
             registryMetadata(run, registry, `${release.name}@${release.version}`),
@@ -260,11 +280,16 @@ export function publish(
     destination,
     run,
     registry,
-    tag = 'latest',
+    tag = channelFor(release.version),
     publishOptions = {},
     beforeWrite = () => preflightRegistries(release),
 ) {
-    assert.ok(['latest', 'recovery'].includes(tag), 'Expected latest or recovery dist-tag')
+    validateChannel(
+        release.version,
+        release.sourceRef ??
+            (channelFor(release.version) === 'latest' ? 'refs/heads/main' : 'refs/heads/next'),
+        tag,
+    )
     const spec = `${release.name}@${release.version}`
     const existing = registryMetadata(run, registry, spec)
     if (existing) {
@@ -272,22 +297,9 @@ export function publish(
         console.log(`${destination}: identical ${spec} already exists; skipped`)
         return
     }
-    if (tag === 'latest') {
-        const latest = registryMetadata(run, registry, release.name, 'dist-tags')?.latest
-        if (latest) {
-            assert.match(
-                latest,
-                /^\d+\.\d+\.\d+$/,
-                'Non-stable latest requires explicit recovery tag',
-            )
-            const current = latest.split('.').map(Number)
-            const target = release.version.split('.').map(Number)
-            const firstDifference = current.findIndex((part, index) => part !== target[index])
-            assert.ok(
-                firstDifference === -1 || current[firstDifference] < target[firstDifference],
-                `Registry latest ${latest} is newer than ${release.version}; use recovery tag to preserve latest`,
-            )
-        }
+    if (tag !== 'recovery') {
+        const current = registryMetadata(run, registry, release.name, 'dist-tags')?.[tag]
+        assertNoDowngrade(release.version, current, tag)
     }
     const args = [
         'publish',
@@ -314,7 +326,7 @@ export function bootstrap(
     release,
     run,
     registry,
-    tag = 'latest',
+    tag = channelFor(release.version),
     beforeWrite = () => preflightRegistries(release),
 ) {
     const login = run(['login', `--registry=${registry}`], { stdio: 'inherit' })

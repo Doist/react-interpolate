@@ -23,11 +23,11 @@ on:
                 type: choice
                 options: [both, npm, github]
             dist_tag:
-                description: Use recovery for an older missing mirror, preserving latest
+                description: Preserve the artifact latest/next channel; recovery never moves that channel
                 required: true
-                default: latest
+                default: channel
                 type: choice
-                options: [latest, recovery]
+                options: [channel, recovery]
             record_release:
                 description: Create the normal v<version> release record only after both copies match
                 required: true
@@ -38,7 +38,7 @@ permissions:
     contents: read
 
 concurrency:
-    group: react-interpolate-publication
+    group: react-interpolate-release
     cancel-in-progress: false
 
 jobs:
@@ -69,13 +69,38 @@ jobs:
                   DIST_TAG: ${{ inputs.dist_tag }}
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GH_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: node .github/scripts/release.mjs publish "$SOURCE_RUN" "$SOURCE_ATTEMPT" "$VERSION" "$DESTINATION" "$DIST_TAG"
-            - name: Record the normal semantic-release baseline after both registries pass
+              run: |
+                  if [ "$DIST_TAG" = channel ]; then DIST_TAG=""; fi
+                  node .github/scripts/release.mjs publish "$SOURCE_RUN" "$SOURCE_ATTEMPT" "$VERSION" "$DESTINATION" "$DIST_TAG"
+            - name: Generate the existing release bot token for commitback and records
+              if: inputs.record_release
+              id: generate_token
+              uses: actions/create-github-app-token@v3
+              with:
+                  app-id: ${{ secrets.DOIST_RELEASE_BOT_ID }}
+                  private-key: ${{ secrets.DOIST_RELEASE_BOT_PRIVATE_KEY }}
+                  permission-contents: write
+            - name: Get the release bot identity
+              if: inputs.record_release
+              id: bot_user
+              env:
+                  GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+                  BOT_SLUG: ${{ steps.generate_token.outputs.app-slug }}
+              run: |
+                  user_id=$(gh api "/users/${BOT_SLUG}[bot]" --jq .id)
+                  test -n "$user_id"
+                  echo "id=$user_id" >> "$GITHUB_OUTPUT"
+            - name: Record normal version, changelog, tag and channel after both registries pass
               if: inputs.record_release
               env:
                   SOURCE_RUN: ${{ inputs.source_run_id }}
                   SOURCE_ATTEMPT: ${{ inputs.source_attempt }}
                   VERSION: ${{ inputs.version }}
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_RECORD_TOKEN: ${{ steps.generate_token.outputs.token }}
                   GH_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GIT_AUTHOR_NAME: ${{ steps.generate_token.outputs.app-slug }}[bot]
+                  GIT_AUTHOR_EMAIL: ${{ steps.bot_user.outputs.id }}+${{ steps.generate_token.outputs.app-slug }}[bot]@users.noreply.github.com
+                  GIT_COMMITTER_NAME: ${{ steps.generate_token.outputs.app-slug }}[bot]
+                  GIT_COMMITTER_EMAIL: ${{ steps.bot_user.outputs.id }}+${{ steps.generate_token.outputs.app-slug }}[bot]@users.noreply.github.com
               run: node .github/scripts/release.mjs record "$SOURCE_RUN" "$SOURCE_ATTEMPT" "$VERSION"

@@ -173,6 +173,7 @@ test('npmjs receives no GitHub read/publish credentials or inherited registry co
         process.env.npm_config_registry = 'https://wrong.invalid/'
         process.env.GH_PACKAGES_TOKEN = 'synthetic-read-token'
         process.env.GH_TOKEN = 'synthetic-api-token'
+        process.env.GH_RECORD_TOKEN = 'synthetic-record-token'
         process.env.NODE_AUTH_TOKEN = 'synthetic-wrong-token'
         withRegistry('npm', (run, expected) => {
             assert.equal(run(['config', 'get', '@todoist:registry']).stdout.trim(), expected)
@@ -183,10 +184,10 @@ test('npmjs receives no GitHub read/publish credentials or inherited registry co
                 '--',
                 'node',
                 '-e',
-                'console.log(JSON.stringify([process.env.GH_PACKAGES_TOKEN, process.env.GH_TOKEN, process.env.NODE_AUTH_TOKEN]))',
+                'console.log(JSON.stringify([process.env.GH_PACKAGES_TOKEN, process.env.GH_TOKEN, process.env.NODE_AUTH_TOKEN, process.env.GH_RECORD_TOKEN]))',
             ])
             assert.equal(result.status, 0)
-            assert.deepEqual(JSON.parse(result.stdout), [null, null, null])
+            assert.deepEqual(JSON.parse(result.stdout), [null, null, null, null])
         })
     } finally {
         for (const key of Object.keys(process.env)) if (!(key in saved)) delete process.env[key]
