@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { test } from 'node:test'
 import { selectOriginalArchive, verifyArchive, extractOriginalArchive } from './artifact-source.mjs'
 import { requireGithubRegistryMetadata } from './artifact.mjs'
@@ -82,17 +82,20 @@ test('archive API digest and each safely extracted local entry bind to original 
             '-c',
             'import io,sys,zipfile\nb=io.BytesIO()\nwith zipfile.ZipFile(b,"w") as z:z.writestr("../outside","bad")\nsys.stdout.buffer.write(b.getvalue())',
         ])
-        assert.throws(() =>
-            extractOriginalArchive(
-                {
-                    ...metadata,
-                    digest: `sha256:${createHash('sha256').update(traversal).digest('hex')}`,
-                },
-                traversal,
-                directory,
-                '2.2.5',
-            ),
+        assert.throws(
+            () =>
+                extractOriginalArchive(
+                    {
+                        ...metadata,
+                        digest: `sha256:${createHash('sha256').update(traversal).digest('hex')}`,
+                    },
+                    traversal,
+                    directory,
+                    '2.2.5',
+                ),
+            /Unexpected or duplicate artifact entry/,
         )
+        assert.equal(existsSync(join(dirname(directory), 'outside')), false)
     } finally {
         rmSync(directory, { recursive: true, force: true })
     }
@@ -125,12 +128,7 @@ test('an interrupted new-scope record cannot become the next semantic baseline',
     }
     assert.throws(() => requirePublishedBaseline(null, '2.2.5'), /recover its original artifact/)
     assert.throws(
-        () =>
-            requirePublishedBaseline(
-                { ...record, draft: true },
-                '2.2.5',
-                source.sha,
-            ),
+        () => requirePublishedBaseline({ ...record, draft: true }, '2.2.5', source.sha),
         /finish original-asset recovery/,
     )
     assert.throws(

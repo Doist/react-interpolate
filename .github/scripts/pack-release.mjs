@@ -12,7 +12,7 @@ import {
     githubVisibility,
     requireGithubRegistryMetadata,
 } from './artifact.mjs'
-import { checkPackSource } from './release-source.mjs'
+import { checkPackSource, validateInitialPack } from './release-source.mjs'
 import { channelFor, parseVersion, validateChannel } from './release-policy.mjs'
 import { retainRecordFiles, verifyRecordFiles } from './record-data.mjs'
 
@@ -37,10 +37,22 @@ const channel = validateChannel(version, source.ref)
 assert.equal(result.nextRelease.channel ?? 'latest', channel)
 assert.equal(result.nextRelease.gitTag, `v${version}`)
 // Already-published versions must use the original run; never repack for a mirror retry.
-githubVisibility()
+const initialScope = process.env.INITIAL_SCOPE_PACK === 'true'
+if (initialScope)
+    validateInitialPack(
+        version,
+        source.ref,
+        result.lastRelease.gitTag,
+        process.env.GITHUB_EVENT_NAME,
+    )
+else githubVisibility()
 for (const destination of ['npm', 'github']) {
     withRegistry(destination, (run, registry) => {
-        if (destination === 'github') requireGithubRegistryMetadata(run, registry)
+        // Initial artifact preparation makes no public write and cannot use an
+        // owner PAT in CI. Explicit first-pack authorization permits package404
+        // here only. Publication must independently prove owner-backed absence.
+        if (destination === 'github')
+            requireGithubRegistryMetadata(run, registry, '@todoist/react-interpolate', initialScope)
         assert.equal(
             registryMetadata(run, registry, `@todoist/react-interpolate@${version}`),
             null,

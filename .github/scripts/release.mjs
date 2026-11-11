@@ -11,7 +11,7 @@ import {
     registryMetadata,
     assertSameArtifact,
 } from './artifact.mjs'
-import { api, sourceRun, validateMainBase } from './release-source.mjs'
+import { api, sourceRun, validateMainBase, validateRetainedContext } from './release-source.mjs'
 
 import { downloadOriginal } from './artifact-source.mjs'
 import { channelFor, parseVersion } from './release-policy.mjs'
@@ -30,12 +30,8 @@ try {
     const archive = downloadOriginal(source, runId, attempt, version, directory)
     console.log(`Verified Actions artifact ${archive.id}: ${archive.digest}`)
     const release = verify(directory, source.sha, version, source.ref)
-    if (release.schema === 1) assert.equal(source.ref, 'refs/heads/main')
+    validateRetainedContext(release, runId, attempt, version, source)
     validateMainBase(release, (base, head) => api(`compare/${base}...${head}`))
-    assert.equal(release.runId, runId)
-    assert.equal(release.runAttempt, attempt)
-    assert.equal(release.gitTag, `v${version}`)
-    assert.ok(release.notes?.startsWith('[Posted by Jarvis]\n\n'))
     preflightRegistries(release)
     if (command === 'bootstrap') {
         assert.equal(destination, 'npm')

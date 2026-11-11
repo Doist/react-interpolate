@@ -50,6 +50,30 @@ export function validateMainBase(release, compare) {
     )
 }
 
+export function validateRetainedContext(release, runId, attempt, version, source) {
+    assert.equal(release.version, version)
+    assert.equal(release.sourceSha, source.sha)
+    assert.equal(release.sourceRef, source.ref)
+    if (release.schema === 1) {
+        // Schema 1 predates embedded run/notes fields. The original successful attempt
+        // and immutable archive still bind these exact bytes before this check.
+        assert.equal(source.ref, 'refs/heads/main')
+        return
+    }
+    assert.equal(release.schema, 2, 'Unsupported retained schema; recover original bytes')
+    assert.equal(release.runId, runId)
+    assert.equal(release.runAttempt, attempt)
+    assert.equal(release.gitTag, `v${version}`)
+    assert.ok(release.notes?.startsWith('[Posted by Jarvis]\n\n'))
+}
+
+export function validateInitialPack(version, sourceRef, lastTag, event) {
+    assert.equal(event, 'workflow_dispatch', 'Initial scope pack must be explicitly dispatched')
+    assert.equal(sourceRef, 'refs/heads/main')
+    assert.equal(lastTag, 'v2.2.4', 'Initial pack must follow the reviewed legacy baseline')
+    assert.equal(version, '2.2.5', 'Initial pack must match the approved first version')
+}
+
 export function sourceRun(runId, attempt) {
     assert.match(runId, /^[1-9][0-9]*$/)
     assert.match(attempt, /^[1-9][0-9]*$/)

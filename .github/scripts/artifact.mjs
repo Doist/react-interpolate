@@ -219,8 +219,7 @@ export function preflight(release, lookup) {
     }
 }
 
-// This repository already has a public GitHub mirror. Require direct target access:
-// GitHub can hide unauthorized packages with 404 or omit them from an inventory.
+// Existing new-scope mirrors must be public and directly readable.
 export function validateGithubMirror(pkg) {
     assert.ok(
         pkg,
@@ -240,21 +239,53 @@ export function validateGithubMirror(pkg) {
     return pkg
 }
 
-export function githubVisibility() {
+function githubPackageRequest(path) {
     assert.ok(process.env.GH_PACKAGES_TOKEN, 'GitHub package read token is required')
-    const pkg = JSON.parse(
-        execFileSync('gh', ['api', 'orgs/todoist/packages/npm/react-interpolate'], {
-            encoding: 'utf8',
-            env: { ...process.env, GH_TOKEN: process.env.GH_PACKAGES_TOKEN },
-        }),
-    )
-    return validateGithubMirror(pkg)
+    const result = spawnSync('gh', ['api', '--include', path], {
+        encoding: 'utf8',
+        env: { ...process.env, GH_TOKEN: process.env.GH_PACKAGES_TOKEN },
+    })
+    const [headers, ...body] = result.stdout.split(/\r?\n\r?\n/)
+    const status = Number(headers.match(/^HTTP\/\S+ (\d{3})/)?.[1])
+    assert.ok([200, 404].includes(status), 'GitHub package access failed; absence is ambiguous')
+    assert.ok(result.status === 0 || status === 404, 'GitHub package request failed')
+    return {
+        status,
+        data: JSON.parse(body.join('\n\n')),
+        scopes:
+            headers
+                .match(/^x-oauth-scopes:\s*(.*)$/im)?.[1]
+                .trim()
+                .split(/,\s*/) ?? [],
+    }
 }
 
-export function requireGithubRegistryMetadata(run, registry, name = packageName) {
+export function githubVisibility(request = githubPackageRequest) {
+    const response = request('orgs/todoist/packages/npm/react-interpolate')
+    if (response.status === 200) return validateGithubMirror(response.data)
+    assert.equal(response.status, 404, 'GitHub package access failed; absence is ambiguous')
+    // A filtered inventory or ordinary repository-token 404 cannot prove absence.
+    // Only a same-token active organization owner with explicit package-read rights
+    // may bootstrap this exact new identity. Workflows cannot bypass this gate.
+    assert.ok(
+        response.scopes.some((scope) => ['read:packages', 'write:packages'].includes(scope)),
+        'First mirror requires an owner token with package-read scope',
+    )
+    const membership = request('user/memberships/orgs/todoist')
+    assert.equal(membership.status, 200, 'Cannot verify organization owner for first mirror')
+    assert.equal(membership.data.state, 'active', 'First mirror requires active organization owner')
+    assert.equal(membership.data.role, 'admin', 'First mirror requires organization owner')
+    return null
+}
+
+export function requireGithubRegistryMetadata(run, registry, name = packageName, absent = false) {
     const auth = run(['whoami', `--registry=${registry}`])
     assert.equal(auth.status, 0, 'GitHub registry authentication failed; absence is ambiguous')
     const tags = registryMetadata(run, registry, name, 'dist-tags')
+    if (absent) {
+        assert.equal(tags, null, 'Registry package exists despite owner-confirmed REST absence')
+        return null
+    }
     assert.ok(
         tags &&
             typeof tags === 'object' &&
@@ -265,11 +296,13 @@ export function requireGithubRegistryMetadata(run, registry, name = packageName)
     return tags
 }
 
-export function preflightRegistries(release) {
-    githubVisibility()
-    withRegistry('github', (run, registry) => requireGithubRegistryMetadata(run, registry))
+export function preflightRegistries(release, io = { githubVisibility, withRegistry }) {
+    const mirror = io.githubVisibility()
+    io.withRegistry('github', (run, registry) =>
+        requireGithubRegistryMetadata(run, registry, packageName, mirror === null),
+    )
     preflight(release, (destination) =>
-        withRegistry(destination, (run, registry) =>
+        io.withRegistry(destination, (run, registry) =>
             registryMetadata(run, registry, `${release.name}@${release.version}`),
         ),
     )

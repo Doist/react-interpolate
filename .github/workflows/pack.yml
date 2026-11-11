@@ -9,6 +9,11 @@ on:
                 description: Reviewed semantic-release result (first migration release 2.2.5)
                 required: false
                 type: string
+            initial_scope:
+                description: First approved 2.2.5 artifact only; publication still requires independent owner absence proof
+                required: false
+                default: false
+                type: boolean
 
 # semantic-release dry-run checks push permission, but does not create tags/commits/releases.
 permissions:
@@ -45,6 +50,7 @@ jobs:
               env:
                   RELEASE_DIR: ${{ runner.temp }}/react-interpolate-release
                   EXPECTED_VERSION: ${{ inputs.version }}
+                  INITIAL_SCOPE_PACK: ${{ inputs.initial_scope }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GH_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
