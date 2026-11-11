@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { gunzipSync } from 'node:zlib'
 import { verifyRecordFiles } from './record-data.mjs'
 import { parseVersion, channelFor, validateChannel, assertNoDowngrade } from './release-policy.mjs'
 
@@ -66,7 +67,11 @@ export function verify(directory, sourceSha, version, sourceRef) {
     const bytes = readFileSync(tarball)
     assert.equal(release.integrity, `sha512-${hash(bytes, 'sha512', 'base64')}`)
     assert.equal(release.shasum, hash(bytes, 'sha1', 'hex'))
-    const files = execFileSync('tar', ['-tzf', tarball], { encoding: 'utf8' }).trim().split('\n')
+    // npm scripts prepend dependency binaries to PATH. Decompress in Node so GNU
+    // tar cannot accidentally invoke the unrelated gzip-cli dependency.
+    const archive = gunzipSync(bytes)
+    const tarOptions = { input: archive, encoding: 'utf8' }
+    const files = execFileSync('tar', ['-tf', '-'], tarOptions).trim().split('\n')
     for (const file of [
         'react-interpolate.cjs',
         'react-interpolate.mjs',
@@ -87,9 +92,7 @@ export function verify(directory, sourceSha, version, sourceRef) {
         ),
         'Unexpected packed files',
     )
-    const pkg = JSON.parse(
-        execFileSync('tar', ['-xOzf', tarball, 'package/package.json'], { encoding: 'utf8' }),
-    )
+    const pkg = JSON.parse(execFileSync('tar', ['-xOf', '-', 'package/package.json'], tarOptions))
     validatePackage(pkg, version)
     if (release.schema === 2) {
         const records = verifyRecordFiles(directory, release)
