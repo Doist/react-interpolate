@@ -1,34 +1,16 @@
 /**
- * @type {import('semantic-release').GlobalConfig}
+ * Semantic-release remains the version/notes authority. Publication and release
+ * records consume a retained artifact separately; even a direct invocation is read-only.
+ * pack-release prepares the existing stable changelog/version outputs. record-release
+ * commits those only after both registries pass, tags v${version}, and restores the
+ * semantic-release Git channel note. next keeps its original no-commitback policy.
  */
-
-const prereleaseBranches = [{ name: 'next', prerelease: true }]
-
-const isPrerelease = prereleaseBranches.some((b) => b.name === process.env.GITHUB_REF_NAME)
-
 module.exports = {
-    branches: ['main', ...prereleaseBranches],
+    branches: ['main', { name: 'next', prerelease: true }],
+    tagFormat: 'v${version}',
+    dryRun: true,
     plugins: [
         ['@semantic-release/commit-analyzer', { preset: 'conventionalcommits' }],
         ['@semantic-release/release-notes-generator', { preset: 'conventionalcommits' }],
-        // Only update CHANGELOG.md and commit back on stable releases
-        ...(isPrerelease ? [] : ['@semantic-release/changelog']),
-        // Publishes to npm using OIDC trusted publishing; the build and test
-        // suite run first via the package's `prepublishOnly` script.
-        '@semantic-release/npm',
-        ...(isPrerelease
-            ? []
-            : [
-                  [
-                      '@semantic-release/git',
-                      {
-                          assets: ['CHANGELOG.md', 'package.json', 'package-lock.json'],
-                          // eslint-disable-next-line no-template-curly-in-string
-                          message:
-                              'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-                      },
-                  ],
-              ]),
-        '@semantic-release/github',
     ],
 }
