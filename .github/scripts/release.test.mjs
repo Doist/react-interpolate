@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
-import { appendFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import { test } from 'node:test'
 import {
     bootstrap,
@@ -233,6 +233,7 @@ test('trusted historical run survives later main maintenance; PR, foreign, misma
 test('synthetic packing rejects stale locks, wrong schema/source and corrupt bytes', () => {
     const directory = mkdtempSync(join(tmpdir(), 'interpolate-fixture-'))
     const cwd = process.cwd()
+    const originalPath = process.env.PATH
     const sha = 'a'.repeat(40)
     const pkg = {
         name: release.name,
@@ -246,6 +247,13 @@ test('synthetic packing rejects stale locks, wrong schema/source and corrupt byt
         devDependencies: { '@todoist/prettier-config': '4.0.2' },
     }
     try {
+        const bin = join(directory, 'bin')
+        const invoked = join(directory, 'external-gzip-invoked')
+        mkdirSync(bin)
+        writeFileSync(join(bin, 'gzip'), `#!/bin/sh\ntouch '${invoked}'\nexit 97\n`, {
+            mode: 0o755,
+        })
+        process.env.PATH = `${bin}${delimiter}${originalPath}`
         mkdirSync(join(directory, 'dist'))
         for (const suffix of ['cjs', 'mjs', 'min.cjs', 'min.mjs', 'd.ts'])
             writeFileSync(join(directory, `dist/react-interpolate.${suffix}`), 'fixture\n')
@@ -264,6 +272,7 @@ test('synthetic packing rejects stale locks, wrong schema/source and corrupt byt
         writeFileSync('package-lock.json', JSON.stringify(lock))
         const packed = pack('artifact', sha, 'refs/heads/main')
         const original = verify('artifact', sha, pkg.version)
+        assert.equal(existsSync(invoked), false, 'Archive inspection must not invoke external gzip')
         const source = { sha, ref: 'refs/heads/main' }
         validateRetainedContext(original, '123', '1', pkg.version, source)
         // Schema 1 has no embedded run/notes fields: preserve publication retry,
@@ -302,6 +311,7 @@ test('synthetic packing rejects stale locks, wrong schema/source and corrupt byt
         appendFileSync(join('artifact', packed.filename), 'tampered')
         assert.throws(() => verify('artifact', sha, pkg.version))
     } finally {
+        process.env.PATH = originalPath
         process.chdir(cwd)
         rmSync(directory, { recursive: true, force: true })
     }
